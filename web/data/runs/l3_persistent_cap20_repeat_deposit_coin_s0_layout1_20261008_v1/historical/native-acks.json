@@ -1,0 +1,80 @@
+[
+  {
+    "actions": [
+      [
+        {
+          "left_arm_joint_state": [
+            0.0007476561004295945,
+            0.7721754312515259,
+            0.7460290789604187,
+            -0.7744791507720947,
+            -0.0060259196907281876,
+            0.0029081206303089857
+          ],
+          "left_ee_joint_state": [
+            0.23618954420089722
+          ],
+          "right_arm_joint_state": [
+            5.1146559210124565e-11,
+            -5.55929407326447e-14,
+            1.6372508207583396e-14,
+            3.195978976800774e-14,
+            -6.103967331583249e-11,
+            -4.337004089194352e-10
+          ],
+          "right_ee_joint_state": [
+            1.0
+          ]
+        }
+      ]
+    ],
+    "control_steps": [
+      273
+    ],
+    "kind": "action_submit",
+    "layout_by_env": {
+      "0": 1
+    },
+    "time_unix": 1791451568.8763206
+  },
+  {
+    "control_steps": [
+      274
+    ],
+    "elapsed_s": 0.22840153891593218,
+    "kind": "action_complete",
+    "layout_by_env": {
+      "0": 1
+    },
+    "native_end": [
+      false
+    ],
+    "native_success": [
+      true
+    ],
+    "time_unix": 1791451569.1059759
+  },
+  {
+    "control_steps": [
+      274
+    ],
+    "kind": "episode_complete",
+    "layout_by_env": {
+      "0": 1
+    },
+    "native_results": {
+      "details": {
+        "0": {
+          "layout_id": 1,
+          "score": 0.2,
+          "success": false
+        }
+      },
+      "eval_time": 1,
+      "score": 20.0,
+      "success_rate": 0.0
+    },
+    "time_unix": 1791451570.4208927,
+    "unstable_envs": []
+  }
+]
