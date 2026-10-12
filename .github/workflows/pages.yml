@@ -1,0 +1,63 @@
+name: Deploy validated results dashboard
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify static artifact paths and mirrored bytes
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,pathlib
+          root=pathlib.Path('web')
+          index=json.loads((root/'data/index.json').read_text())
+          assert index['schema_version'] in ('l3-index-v1','l3-index-v2')
+          expected={'index.html','app.js','style.css','.nojekyll','data/index.json'}
+          seen=set()
+          for row in index['runs']:
+              rid=row['run_id']; assert rid not in seen; seen.add(rid)
+              prefix='data/runs/'+rid+'/'
+              name=prefix+'manifest.json'
+              assert row['manifest_path']==name
+              original=json.loads((root/name).read_text())
+              expected.add(name)
+              normalized=json.loads(json.dumps(row)); del normalized['manifest_path']
+              assert original['evidence_level']=='native_terminal'
+              for artifact in normalized['artifacts']:
+                  assert artifact['url'].startswith('https://')
+                  if artifact['kind']=='raw_video': continue
+                  name=prefix+artifact['path']
+                  assert artifact.pop('site_path')==name
+                  assert not pathlib.PurePosixPath(name).is_absolute() and '..' not in pathlib.PurePosixPath(name).parts
+                  body=(root/name).read_bytes()
+                  assert len(body)==artifact['bytes'] and hashlib.sha256(body).hexdigest()==artifact['sha256']
+                  json.loads(body); expected.add(name)
+              assert normalized==original
+          actual=set()
+          for p in root.rglob('*'):
+              assert not p.is_symlink()
+              if p.is_file(): actual.add(p.relative_to(root).as_posix())
+          assert actual <= expected and expected-actual <= {'.nojekyll'}
+          print('Verified static mirrors:',len(seen),'native runs')
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - name: Deploy read-only snapshot
+        id: deployment
+        uses: actions/deploy-pages@v4
