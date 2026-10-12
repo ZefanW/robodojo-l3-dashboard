@@ -1,0 +1,42 @@
+[
+  {
+    "control_steps": [
+      268
+    ],
+    "elapsed_s": 0.15430776099674404,
+    "kind": "action_complete",
+    "layout_by_env": {
+      "0": 2
+    },
+    "native_end": [
+      false
+    ],
+    "native_success": [
+      true
+    ],
+    "time_unix": 1791482926.0024524
+  },
+  {
+    "control_steps": [
+      268
+    ],
+    "kind": "episode_complete",
+    "layout_by_env": {
+      "0": 2
+    },
+    "native_results": {
+      "details": {
+        "0": {
+          "layout_id": 2,
+          "score": 0.0,
+          "success": false
+        }
+      },
+      "eval_time": 1,
+      "score": 0.0,
+      "success_rate": 0.0
+    },
+    "time_unix": 1791482927.2156813,
+    "unstable_envs": []
+  }
+]
