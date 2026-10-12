@@ -1,0 +1,3657 @@
+{
+  "instruction": "Pick up the white toy car by 10 cm.",
+  "run_id": "l3_persistent_cap20_repeat_general_pickup_s0_layout3_20261008_v1",
+  "turns": [
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The white toy car is in front of the right arm. I am turning the gripper toward a top-down grasp.",
+            "targets": {
+              "right_pitch_deg": 45
+            }
+          },
+          "call_index": 1,
+          "finish_reason": "tool_calls",
+          "latency_s": 53.04586516902782,
+          "model": "gpt-6-astra",
+          "policy_step": 0,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 16 waypoints (0.6s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 16,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.300458,
+              -0.308337,
+              1.027637,
+              0.653183,
+              -0.270639,
+              0.270557,
+              0.65338
+            ],
+            "named": {
+              "right_pitch_deg": 45.0
+            },
+            "source_waypoints": 221,
+            "target_pose": [
+              0.300458,
+              -0.308337,
+              1.027637,
+              0.653183,
+              -0.270639,
+              0.270557,
+              0.65338
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 16,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 17,
+            "start": 1
+          },
+          "left_wrist": {
+            "end": 17,
+            "start": 1
+          },
+          "right_wrist": {
+            "end": 17,
+            "start": 1
+          }
+        },
+        "env_step_end": 16,
+        "env_step_start": 0,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 16,
+        "planned_waypoints": 16,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 1,
+            "frame": 0,
+            "start": 0
+          },
+          "left_wrist": {
+            "end": 1,
+            "frame": 0,
+            "start": 0
+          },
+          "right_wrist": {
+            "end": 1,
+            "frame": 0,
+            "start": 0
+          }
+        },
+        "env_step": 0,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3004709482192993,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 5.115578100012286e-13,
+          "left_joint2": -1.156115904982105e-15,
+          "left_joint3": 1.767066072491508e-17,
+          "left_joint4": 7.853062682560905e-16,
+          "left_joint5": -9.987136985467604e-13,
+          "left_joint6": 2.5006576670483227e-12,
+          "right_gripper": 1.0,
+          "right_joint1": 5.115569426394906e-13,
+          "right_joint2": -1.1561103992679478e-15,
+          "right_joint3": 1.7667572032507807e-17,
+          "right_joint4": 7.853009213606109e-16,
+          "right_joint5": -9.98713048025457e-13,
+          "right_joint6": 2.5006572333674537e-12
+        }
+      },
+      "policy_step": 0
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The car's long axis runs laterally. I will orient the jaws to grasp across its narrower body.",
+            "targets": {
+              "right_pitch_deg": 0,
+              "right_yaw_deg": 90
+            }
+          },
+          "call_index": 2,
+          "finish_reason": "tool_calls",
+          "latency_s": 5.537928991019726,
+          "model": "gpt-6-astra",
+          "policy_step": 1,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: the original plan contains 32 control steps; only its first 20 will execute before the next observation. The remaining steps will not execute automatically. This prefix may end before the target or before a scheduled gripper change; the next observation reports actual execution and target error.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 32,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.300351,
+              -0.202192,
+              1.071601,
+              0.0,
+              -0.707107,
+              -0.0,
+              0.707107
+            ],
+            "named": {
+              "right_pitch_deg": 0.0,
+              "right_yaw_deg": 90.0
+            },
+            "source_waypoints": 321,
+            "target_pose": [
+              0.300351,
+              -0.202192,
+              1.071601,
+              0.0,
+              -0.707107,
+              -0.0,
+              0.707107
+            ]
+          }
+        },
+        "cap20": {
+          "discarded_suffix_controls": 12,
+          "executable_controls": 20,
+          "executed_controls": 20,
+          "latched_gripper_commands": {
+            "left": 1.0,
+            "right": 1.0
+          },
+          "max20": 20,
+          "native_ended_before_prefix_complete": false,
+          "native_terminal_priority": true,
+          "planned_controls": 32,
+          "policy_cap20": true,
+          "policy_step": 1,
+          "suffix_auto_execution": false,
+          "tool": "move_eef",
+          "truncated": true,
+          "unexecuted_controls": 12
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 32,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 38,
+            "start": 18
+          },
+          "left_wrist": {
+            "end": 38,
+            "start": 18
+          },
+          "right_wrist": {
+            "end": 38,
+            "start": 18
+          }
+        },
+        "env_step_end": 36,
+        "env_step_start": 16,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 20,
+        "planned_waypoints": 32,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 18,
+            "frame": 17,
+            "start": 17
+          },
+          "left_wrist": {
+            "end": 18,
+            "frame": 17,
+            "start": 17
+          },
+          "right_wrist": {
+            "end": 18,
+            "frame": 17,
+            "start": 17
+          }
+        },
+        "env_step": 16,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.30041491985321045,
+            -0.3083527088165283,
+            1.0276130437850952,
+            0.6531152129173279,
+            -0.27060458064079285,
+            0.27044108510017395,
+            0.6535098552703857
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 2.063957728684618e-12,
+          "left_joint2": -2.8285650951603023e-15,
+          "left_joint3": 5.180796024355347e-16,
+          "left_joint4": 1.7435916991763228e-15,
+          "left_joint5": -2.841624071464599e-12,
+          "left_joint6": -1.089347188842904e-11,
+          "right_gripper": 1.0,
+          "right_joint1": 0.0003109199460595846,
+          "right_joint2": 0.7510558366775513,
+          "right_joint3": 0.7279238700866699,
+          "right_joint4": -0.7620358467102051,
+          "right_joint5": 6.672772087767953e-06,
+          "right_joint6": 6.242389190447284e-06
+        }
+      },
+      "policy_step": 1
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The rotation stopped short. I will finish aligning the gripper vertically before moving toward the car.",
+            "targets": {
+              "right_pitch_deg": 0,
+              "right_roll_deg": 0,
+              "right_yaw_deg": 90
+            }
+          },
+          "call_index": 3,
+          "finish_reason": "tool_calls",
+          "latency_s": 28.53909633308649,
+          "model": "gpt-6-astra",
+          "policy_step": 2,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 10 waypoints (0.4s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 10,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.30029,
+              -0.20261,
+              1.070666,
+              0.0,
+              -0.707107,
+              0.0,
+              0.707107
+            ],
+            "named": {
+              "right_pitch_deg": 0.0,
+              "right_roll_deg": 0.0,
+              "right_yaw_deg": 90.0
+            },
+            "source_waypoints": 181,
+            "target_pose": [
+              0.30029,
+              -0.20261,
+              1.070666,
+              0.0,
+              -0.707107,
+              0.0,
+              0.707107
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 10,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 49,
+            "start": 39
+          },
+          "left_wrist": {
+            "end": 49,
+            "start": 39
+          },
+          "right_wrist": {
+            "end": 49,
+            "start": 39
+          }
+        },
+        "env_step_end": 46,
+        "env_step_start": 36,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 10,
+        "planned_waypoints": 10,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 39,
+            "frame": 38,
+            "start": 38
+          },
+          "left_wrist": {
+            "end": 39,
+            "frame": 38,
+            "start": 38
+          },
+          "right_wrist": {
+            "end": 39,
+            "frame": 38,
+            "start": 38
+          }
+        },
+        "env_step": 36,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.30032050609588623,
+            -0.23766197264194489,
+            1.0665156841278076,
+            0.2443040907382965,
+            -0.6634862422943115,
+            0.08262738585472107,
+            0.7023348808288574
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 3.616220170532536e-12,
+          "left_joint2": -4.5009018417147516e-15,
+          "left_joint3": 1.018405606054856e-15,
+          "left_joint4": 2.7018527778993216e-15,
+          "left_joint5": -4.68442125367563e-12,
+          "left_joint6": -2.428761532169421e-11,
+          "right_gripper": 1.0,
+          "right_joint1": 0.0005517376121133566,
+          "right_joint2": 1.27129328250885,
+          "right_joint3": 1.2176964282989502,
+          "right_joint4": -1.2815006971359253,
+          "right_joint5": -3.5665907489601523e-06,
+          "right_joint6": -1.1000510454177856
+        }
+      },
+      "policy_step": 2
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The car lies forward of the hand. I will move above its body with clearance, then refine alignment from the wrist view.",
+            "targets": {
+              "right_x": 0.33,
+              "right_y": -0.065,
+              "right_z": 0.87
+            }
+          },
+          "call_index": 4,
+          "finish_reason": "tool_calls",
+          "latency_s": 33.04695100104436,
+          "model": "gpt-6-astra",
+          "policy_step": 3,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 11 waypoints (0.4s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 11,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.33,
+              -0.065078,
+              1.0201,
+              0.000362,
+              -0.707106,
+              -4e-06,
+              0.707107
+            ],
+            "named": {
+              "right_x": 0.33,
+              "right_y": -0.065,
+              "right_z": 0.87
+            },
+            "source_waypoints": 181,
+            "target_pose": [
+              0.33,
+              -0.065078,
+              1.0201,
+              0.000362,
+              -0.707106,
+              -4e-06,
+              0.707107
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 11,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 61,
+            "start": 50
+          },
+          "left_wrist": {
+            "end": 61,
+            "start": 50
+          },
+          "right_wrist": {
+            "end": 61,
+            "start": 50
+          }
+        },
+        "env_step_end": 57,
+        "env_step_start": 46,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 11,
+        "planned_waypoints": 11,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 50,
+            "frame": 49,
+            "start": 49
+          },
+          "left_wrist": {
+            "end": 50,
+            "frame": 49,
+            "start": 49
+          },
+          "right_wrist": {
+            "end": 50,
+            "frame": 49,
+            "start": 49
+          }
+        },
+        "env_step": 46,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.30021506547927856,
+            -0.20267191529273987,
+            1.0706884860992432,
+            0.00036200604517944157,
+            -0.7071062326431274,
+            -3.6947399166820105e-06,
+            0.7071071267127991
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 5.1686198723754906e-12,
+          "left_joint2": -6.173349761343528e-15,
+          "left_joint3": 1.5188130836557914e-15,
+          "left_joint4": 3.6601352442042386e-15,
+          "left_joint5": -6.527334662359552e-12,
+          "left_joint6": -3.7681750081342e-11,
+          "right_gripper": 1.0,
+          "right_joint1": 0.0008578892447985709,
+          "right_joint2": 1.4910186529159546,
+          "right_joint3": 1.421024203300476,
+          "right_joint4": -1.5002847909927368,
+          "right_joint5": 1.7937709628768062e-07,
+          "right_joint6": -1.5691300630569458
+        }
+      },
+      "policy_step": 3
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The wrist view shows the car slightly left and toward the fingertips. I will center over the roof and descend while retaining clearance.",
+            "targets": {
+              "right_x": 0.283,
+              "right_y": -0.077,
+              "right_z": 0.825
+            }
+          },
+          "call_index": 5,
+          "finish_reason": "tool_calls",
+          "latency_s": 33.55068851914257,
+          "model": "gpt-6-astra",
+          "policy_step": 4,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 5 waypoints (0.2s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 5,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.282996,
+              -0.07714,
+              0.9751,
+              0.000388,
+              -0.707116,
+              -0.000272,
+              0.707098
+            ],
+            "named": {
+              "right_x": 0.283,
+              "right_y": -0.077,
+              "right_z": 0.825
+            },
+            "source_waypoints": 121,
+            "target_pose": [
+              0.282996,
+              -0.07714,
+              0.9751,
+              0.000388,
+              -0.707116,
+              -0.000272,
+              0.707098
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 5,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 67,
+            "start": 62
+          },
+          "left_wrist": {
+            "end": 67,
+            "start": 62
+          },
+          "right_wrist": {
+            "end": 67,
+            "start": 62
+          }
+        },
+        "env_step_end": 62,
+        "env_step_start": 57,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 5,
+        "planned_waypoints": 5,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 62,
+            "frame": 61,
+            "start": 61
+          },
+          "left_wrist": {
+            "end": 62,
+            "frame": 61,
+            "start": 61
+          },
+          "right_wrist": {
+            "end": 62,
+            "frame": 61,
+            "start": 61
+          }
+        },
+        "env_step": 57,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.329817533493042,
+            -0.06522177904844284,
+            1.0203133821487427,
+            0.00038806500378996134,
+            -0.7071157693862915,
+            -0.0002721453784033656,
+            0.707097589969635
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 6.720882097382974e-12,
+          "left_joint2": -7.845692648886845e-15,
+          "left_joint3": 2.0191442224123555e-15,
+          "left_joint4": 4.618398016993132e-15,
+          "left_joint5": -8.370137048741011e-12,
+          "left_joint6": -5.107588657571327e-11,
+          "right_gripper": 1.0,
+          "right_joint1": -0.07634313404560089,
+          "right_joint2": 2.0211024284362793,
+          "right_joint3": 1.8514505624771118,
+          "right_joint4": -1.4002118110656738,
+          "right_joint5": -4.8570011131232604e-05,
+          "right_joint6": -1.6466728448867798
+        }
+      },
+      "policy_step": 4
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The car is centered between the open jaws. I will shift toward its roof and lower to just above grasp height.",
+            "targets": {
+              "right_x": 0.297,
+              "right_z": 0.805
+            }
+          },
+          "call_index": 6,
+          "finish_reason": "tool_calls",
+          "latency_s": 29.041648251004517,
+          "model": "gpt-6-astra",
+          "policy_step": 5,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 2 waypoints (0.1s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 2,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.296998,
+              -0.076931,
+              0.9551,
+              0.000438,
+              -0.707112,
+              -0.000474,
+              0.707101
+            ],
+            "named": {
+              "right_x": 0.297,
+              "right_z": 0.805
+            },
+            "source_waypoints": 81,
+            "target_pose": [
+              0.296998,
+              -0.076931,
+              0.9551,
+              0.000438,
+              -0.707112,
+              -0.000474,
+              0.707101
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 2,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 70,
+            "start": 68
+          },
+          "left_wrist": {
+            "end": 70,
+            "start": 68
+          },
+          "right_wrist": {
+            "end": 70,
+            "start": 68
+          }
+        },
+        "env_step_end": 64,
+        "env_step_start": 62,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 2,
+        "planned_waypoints": 2,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 68,
+            "frame": 67,
+            "start": 67
+          },
+          "left_wrist": {
+            "end": 68,
+            "frame": 67,
+            "start": 67
+          },
+          "right_wrist": {
+            "end": 68,
+            "frame": 67,
+            "start": 67
+          }
+        },
+        "env_step": 62,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.28350719809532166,
+            -0.07693096995353699,
+            0.9758227467536926,
+            0.00043828506022691727,
+            -0.707112193107605,
+            -0.0004737304407171905,
+            0.7071009874343872
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 8.273260548863348e-12,
+          "left_joint2": -9.51813802741678e-15,
+          "left_joint3": 2.519636297428898e-15,
+          "left_joint4": 5.5766671425291296e-15,
+          "left_joint5": -1.0213003186210212e-11,
+          "left_joint6": -6.446958245032164e-11,
+          "right_gripper": 1.0,
+          "right_joint1": 0.04522791504859924,
+          "right_joint2": 1.9777628183364868,
+          "right_joint3": 1.6116634607315063,
+          "right_joint4": -1.2034093141555786,
+          "right_joint5": 7.156747597036883e-05,
+          "right_joint6": -1.5253164768218994
+        }
+      },
+      "policy_step": 5
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The jaws remain aligned around the car. I will lower another five millimetres cautiously.",
+            "targets": {
+              "right_z": 0.801
+            }
+          },
+          "call_index": 7,
+          "finish_reason": "tool_calls",
+          "latency_s": 32.55470247589983,
+          "model": "gpt-6-astra",
+          "policy_step": 6,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.296052,
+              -0.076867,
+              0.9511,
+              0.000504,
+              -0.707121,
+              -0.000493,
+              0.707092
+            ],
+            "named": {
+              "right_z": 0.801
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.296052,
+              -0.076867,
+              0.9511,
+              0.000504,
+              -0.707121,
+              -0.000493,
+              0.707092
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 72,
+            "start": 71
+          },
+          "left_wrist": {
+            "end": 72,
+            "start": 71
+          },
+          "right_wrist": {
+            "end": 72,
+            "start": 71
+          }
+        },
+        "env_step_end": 65,
+        "env_step_start": 64,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 71,
+            "frame": 70,
+            "start": 70
+          },
+          "left_wrist": {
+            "end": 71,
+            "frame": 70,
+            "start": 70
+          },
+          "right_wrist": {
+            "end": 71,
+            "frame": 70,
+            "start": 70
+          }
+        },
+        "env_step": 64,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.29605168104171753,
+            -0.07686690986156464,
+            0.9566076993942261,
+            0.0005039709503762424,
+            -0.7071211338043213,
+            -0.0004931423463858664,
+            0.7070920467376709
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 9.805448120125959e-12,
+          "left_joint2": -1.1164031464149134e-14,
+          "left_joint3": 3.022350563382562e-15,
+          "left_joint4": 6.51895995613049e-15,
+          "left_joint5": -1.2027343530840451e-11,
+          "left_joint6": -7.764671544618906e-11,
+          "right_gripper": 1.0,
+          "right_joint1": 0.011629254557192326,
+          "right_joint2": 1.989872932434082,
+          "right_joint3": 1.551265835762024,
+          "right_joint4": -1.13077974319458,
+          "right_joint5": 5.511815470526926e-05,
+          "right_joint6": -1.5588494539260864
+        }
+      },
+      "policy_step": 6
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "I will lower four more millimetres so the fingertips can engage the sides rather than closing above the roof.",
+            "targets": {
+              "right_z": 0.797
+            }
+          },
+          "call_index": 8,
+          "finish_reason": "tool_calls",
+          "latency_s": 32.562412553001195,
+          "model": "gpt-6-astra",
+          "policy_step": 7,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.295865,
+              -0.076859,
+              0.9471,
+              0.000459,
+              -0.707113,
+              -0.000802,
+              0.7071
+            ],
+            "named": {
+              "right_z": 0.797
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.295865,
+              -0.076859,
+              0.9471,
+              0.000459,
+              -0.707113,
+              -0.000802,
+              0.7071
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 74,
+            "start": 73
+          },
+          "left_wrist": {
+            "end": 74,
+            "start": 73
+          },
+          "right_wrist": {
+            "end": 74,
+            "start": 73
+          }
+        },
+        "env_step_end": 66,
+        "env_step_start": 65,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 73,
+            "frame": 72,
+            "start": 72
+          },
+          "left_wrist": {
+            "end": 73,
+            "frame": 72,
+            "start": 72
+          },
+          "right_wrist": {
+            "end": 73,
+            "frame": 72,
+            "start": 72
+          }
+        },
+        "env_step": 65,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.2958649694919586,
+            -0.07685942947864532,
+            0.9519069790840149,
+            0.0004593577759806067,
+            -0.7071126103401184,
+            -0.0008018587250262499,
+            0.7071002721786499
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 1.1181017049721742e-11,
+          "left_joint2": -1.2613286202176402e-14,
+          "left_joint3": 3.4684444884605387e-15,
+          "left_joint4": 7.344651484762245e-15,
+          "left_joint5": -1.3641837659505995e-11,
+          "left_joint6": -8.933354750384481e-11,
+          "right_gripper": 1.0,
+          "right_joint1": 0.012127837166190147,
+          "right_joint2": 1.993782877922058,
+          "right_joint3": 1.5377181768417358,
+          "right_joint4": -1.1129488945007324,
+          "right_joint5": 3.64363550033886e-05,
+          "right_joint6": -1.558850646018982
+        }
+      },
+      "policy_step": 7
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The fingertips are at the car's upper body height. I will close the jaws around it.",
+            "targets": {
+              "right_gripper": 0
+            }
+          },
+          "call_index": 9,
+          "finish_reason": "tool_calls",
+          "latency_s": 31.565154124982655,
+          "model": "gpt-6-astra",
+          "policy_step": 8,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 6 waypoints (0.2s). The last 6 move the gripper, once the arm has arrived.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 0,
+        "arms": {
+          "right": {
+            "executed_pose": null,
+            "named": {
+              "right_gripper": 0.0
+            },
+            "source_waypoints": 0,
+            "target_pose": null
+          }
+        },
+        "gripper_waypoints": 6,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 6,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 81,
+            "start": 75
+          },
+          "left_wrist": {
+            "end": 81,
+            "start": 75
+          },
+          "right_wrist": {
+            "end": 81,
+            "start": 75
+          }
+        },
+        "env_step_end": 72,
+        "env_step_start": 66,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 6,
+        "planned_waypoints": 6,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 75,
+            "frame": 74,
+            "start": 74
+          },
+          "left_wrist": {
+            "end": 75,
+            "frame": 74,
+            "start": 74
+          },
+          "right_wrist": {
+            "end": 75,
+            "frame": 74,
+            "start": 74
+          }
+        },
+        "env_step": 66,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.2957662045955658,
+            -0.07685341686010361,
+            0.9477280974388123,
+            0.0003927533107344061,
+            -0.707112193107605,
+            -0.000921974889934063,
+            0.707100510597229
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 1.255721741866278e-11,
+          "left_joint2": -1.4065808793314177e-14,
+          "left_joint3": 3.922311846653705e-15,
+          "left_joint4": 8.172470336641029e-15,
+          "left_joint5": -1.525680970448917e-11,
+          "left_joint6": -1.0102094855080068e-10,
+          "right_gripper": 1.0,
+          "right_joint1": 0.012392069213092327,
+          "right_joint2": 1.9975959062576294,
+          "right_joint3": 1.526116132736206,
+          "right_joint4": -1.0974574089050293,
+          "right_joint5": 3.6356064811116084e-05,
+          "right_joint6": -1.5588501691818237
+        }
+      },
+      "policy_step": 8
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "I will lift six millimetres first to check whether the car follows the closed jaws.",
+            "targets": {
+              "right_z": 0.803
+            }
+          },
+          "call_index": 10,
+          "finish_reason": "tool_calls",
+          "latency_s": 26.564637621166185,
+          "model": "gpt-6-astra",
+          "policy_step": 9,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.295766,
+              -0.076853,
+              0.9531,
+              0.000392,
+              -0.707112,
+              -0.000922,
+              0.707101
+            ],
+            "named": {
+              "right_z": 0.803
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.295766,
+              -0.076853,
+              0.9531,
+              0.000392,
+              -0.707112,
+              -0.000922,
+              0.707101
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 83,
+            "start": 82
+          },
+          "left_wrist": {
+            "end": 83,
+            "start": 82
+          },
+          "right_wrist": {
+            "end": 83,
+            "start": 82
+          }
+        },
+        "env_step_end": 73,
+        "env_step_start": 72,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 82,
+            "frame": 81,
+            "start": 81
+          },
+          "left_wrist": {
+            "end": 82,
+            "frame": 81,
+            "start": 81
+          },
+          "right_wrist": {
+            "end": 82,
+            "frame": 81,
+            "start": 81
+          }
+        },
+        "env_step": 72,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.29576629400253296,
+            -0.07685332000255585,
+            0.9477280974388123,
+            0.00039245610241778195,
+            -0.7071122527122498,
+            -0.0009221892687492073,
+            0.7071005702018738
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 1.4109630130931805e-11,
+          "left_joint2": -1.5738280429865477e-14,
+          "left_joint3": 4.4227583936493325e-15,
+          "left_joint4": 9.130762755583076e-15,
+          "left_joint5": -1.7099726148939176e-11,
+          "left_joint6": -1.1441501912567986e-10,
+          "right_gripper": 0.0,
+          "right_joint1": 0.012392398901283741,
+          "right_joint2": 1.997596263885498,
+          "right_joint3": 1.5261167287826538,
+          "right_joint4": -1.097458004951477,
+          "right_joint5": 3.635791290435009e-05,
+          "right_joint6": -1.5588513612747192
+        }
+      },
+      "policy_step": 9
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The car did not follow the test lift, so the jaws closed too high. I will reopen them for a lower grasp.",
+            "targets": {
+              "right_gripper": 1
+            }
+          },
+          "call_index": 11,
+          "finish_reason": "tool_calls",
+          "latency_s": 34.07052541500889,
+          "model": "gpt-6-astra",
+          "policy_step": 10,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 6 waypoints (0.2s). The last 6 move the gripper, once the arm has arrived.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 0,
+        "arms": {
+          "right": {
+            "executed_pose": null,
+            "named": {
+              "right_gripper": 1.0
+            },
+            "source_waypoints": 0,
+            "target_pose": null
+          }
+        },
+        "gripper_waypoints": 6,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 6,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 90,
+            "start": 84
+          },
+          "left_wrist": {
+            "end": 90,
+            "start": 84
+          },
+          "right_wrist": {
+            "end": 90,
+            "start": 84
+          }
+        },
+        "env_step_end": 79,
+        "env_step_start": 73,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 6,
+        "planned_waypoints": 6,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 84,
+            "frame": 83,
+            "start": 83
+          },
+          "left_wrist": {
+            "end": 84,
+            "frame": 83,
+            "start": 83
+          },
+          "right_wrist": {
+            "end": 84,
+            "frame": 83,
+            "start": 83
+          }
+        },
+        "env_step": 73,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.29566502571105957,
+            -0.07684742659330368,
+            0.9524726867675781,
+            0.00036093563539907336,
+            -0.7071105241775513,
+            -0.0010820344323292375,
+            0.7071021199226379
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 1.548510278337467e-11,
+          "left_joint2": -1.718722854196584e-14,
+          "left_joint3": 4.868105023909594e-15,
+          "left_joint4": 9.956256502021647e-15,
+          "left_joint5": -1.8714148286580468e-11,
+          "left_joint6": -1.261018095499722e-10,
+          "right_gripper": 0.0,
+          "right_joint1": 0.012663091532886028,
+          "right_joint2": 1.9932441711425781,
+          "right_joint3": 1.5392532348632812,
+          "right_joint4": -1.1147651672363281,
+          "right_joint5": 3.471004674793221e-05,
+          "right_joint6": -1.5588507652282715
+        }
+      },
+      "policy_step": 10
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The closed-jaw view revealed the contact point near the hood tip rather than the roof. I will shift three centimetres along the car toward the roof before descending.",
+            "targets": {
+              "right_x": 0.326
+            }
+          },
+          "call_index": 12,
+          "finish_reason": "tool_calls",
+          "latency_s": 32.56964590982534,
+          "model": "gpt-6-astra",
+          "policy_step": 11,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 2 waypoints (0.1s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 2,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.325998,
+              -0.076848,
+              0.952473,
+              0.000361,
+              -0.707111,
+              -0.001083,
+              0.707102
+            ],
+            "named": {
+              "right_x": 0.326
+            },
+            "source_waypoints": 81,
+            "target_pose": [
+              0.325998,
+              -0.076848,
+              0.952473,
+              0.000361,
+              -0.707111,
+              -0.001083,
+              0.707102
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 2,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 93,
+            "start": 91
+          },
+          "left_wrist": {
+            "end": 93,
+            "start": 91
+          },
+          "right_wrist": {
+            "end": 93,
+            "start": 91
+          }
+        },
+        "env_step_end": 81,
+        "env_step_start": 79,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 2,
+        "planned_waypoints": 2,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 91,
+            "frame": 90,
+            "start": 90
+          },
+          "left_wrist": {
+            "end": 91,
+            "frame": 90,
+            "start": 90
+          },
+          "right_wrist": {
+            "end": 91,
+            "frame": 90,
+            "start": 90
+          }
+        },
+        "env_step": 79,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.29566490650177,
+            -0.07684772461652756,
+            0.9524731040000916,
+            0.00036121770972386,
+            -0.7071105241775513,
+            -0.0010825470089912415,
+            0.7071020603179932
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 1.7037506822026316e-11,
+          "left_joint2": -1.8859698484451244e-14,
+          "left_joint3": 5.368550723872274e-15,
+          "left_joint4": 1.0914546379864852e-14,
+          "left_joint5": -2.0557066465753948e-11,
+          "left_joint6": -1.3949590094153308e-10,
+          "right_gripper": 1.0,
+          "right_joint1": 0.012663397938013077,
+          "right_joint2": 1.9932423830032349,
+          "right_joint3": 1.5392521619796753,
+          "right_joint4": -1.1147650480270386,
+          "right_joint5": 3.468777140369639e-05,
+          "right_joint6": -1.5588510036468506
+        }
+      },
+      "policy_step": 11
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The gripper is now over the car body rather than its tip. I will descend five millimetres toward a side grasp.",
+            "targets": {
+              "right_z": 0.797
+            }
+          },
+          "call_index": 13,
+          "finish_reason": "tool_calls",
+          "latency_s": 28.080206779995933,
+          "model": "gpt-6-astra",
+          "policy_step": 12,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323988,
+              -0.07676,
+              0.9471,
+              0.000535,
+              -0.707131,
+              -0.000935,
+              0.707082
+            ],
+            "named": {
+              "right_z": 0.797
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.323988,
+              -0.07676,
+              0.9471,
+              0.000535,
+              -0.707131,
+              -0.000935,
+              0.707082
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 95,
+            "start": 94
+          },
+          "left_wrist": {
+            "end": 95,
+            "start": 94
+          },
+          "right_wrist": {
+            "end": 95,
+            "start": 94
+          }
+        },
+        "env_step_end": 82,
+        "env_step_start": 81,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 94,
+            "frame": 93,
+            "start": 93
+          },
+          "left_wrist": {
+            "end": 94,
+            "frame": 93,
+            "start": 93
+          },
+          "right_wrist": {
+            "end": 94,
+            "frame": 93,
+            "start": 93
+          }
+        },
+        "env_step": 81,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.32398805022239685,
+            -0.07676026225090027,
+            0.9524713158607483,
+            0.0005350271821953356,
+            -0.707131028175354,
+            -0.000935241871047765,
+            0.7070816159248352
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 1.8570023990749362e-11,
+          "left_joint2": -2.0506044236777432e-14,
+          "left_joint3": 5.871416820481734e-15,
+          "left_joint4": 1.1857039940274712e-14,
+          "left_joint5": -2.2371783245378474e-11,
+          "left_joint6": -1.5267298536514318e-10,
+          "right_gripper": 1.0,
+          "right_joint1": -0.0631459429860115,
+          "right_joint2": 1.9963607788085938,
+          "right_joint3": 1.5437467098236084,
+          "right_joint4": -1.116102933883667,
+          "right_joint5": -6.45021500531584e-05,
+          "right_joint6": -1.6342053413391113
+        }
+      },
+      "policy_step": 12
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "I will lower four millimetres further to place the jaw pads beside the car body.",
+            "targets": {
+              "right_z": 0.793
+            }
+          },
+          "call_index": 14,
+          "finish_reason": "tool_calls",
+          "latency_s": 34.0820614809636,
+          "model": "gpt-6-astra",
+          "policy_step": 13,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323691,
+              -0.076736,
+              0.9431,
+              0.000194,
+              -0.707113,
+              -0.001159,
+              0.7071
+            ],
+            "named": {
+              "right_z": 0.793
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.323691,
+              -0.076736,
+              0.9431,
+              0.000194,
+              -0.707113,
+              -0.001159,
+              0.7071
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 97,
+            "start": 96
+          },
+          "left_wrist": {
+            "end": 97,
+            "start": 96
+          },
+          "right_wrist": {
+            "end": 97,
+            "start": 96
+          }
+        },
+        "env_step_end": 83,
+        "env_step_start": 82,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 96,
+            "frame": 95,
+            "start": 95
+          },
+          "left_wrist": {
+            "end": 96,
+            "frame": 95,
+            "start": 95
+          },
+          "right_wrist": {
+            "end": 96,
+            "frame": 95,
+            "start": 95
+          }
+        },
+        "env_step": 82,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3236909806728363,
+            -0.07673576474189758,
+            0.9477260112762451,
+            0.0001944399409694597,
+            -0.7071129679679871,
+            -0.001158756553195417,
+            0.7070994973182678
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 1.994558164464255e-11,
+          "left_joint2": -2.1955300668870595e-14,
+          "left_joint3": 6.3175219687462616e-15,
+          "left_joint4": 1.268273189242294e-14,
+          "left_joint5": -2.3986271302511852e-11,
+          "left_joint6": -1.6435983130058673e-10,
+          "right_gripper": 1.0,
+          "right_joint1": -0.06235181912779808,
+          "right_joint2": 2.000734567642212,
+          "right_joint3": 1.530658483505249,
+          "right_joint4": -1.0988092422485352,
+          "right_joint5": -0.0001041719297063537,
+          "right_joint6": -1.634209394454956
+        }
+      },
+      "policy_step": 13
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The jaws now straddle the car at a lower height. I will close them for a second grasp.",
+            "targets": {
+              "right_gripper": 0
+            }
+          },
+          "call_index": 15,
+          "finish_reason": "tool_calls",
+          "latency_s": 34.5889762500301,
+          "model": "gpt-6-astra",
+          "policy_step": 14,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 6 waypoints (0.2s). The last 6 move the gripper, once the arm has arrived.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 0,
+        "arms": {
+          "right": {
+            "executed_pose": null,
+            "named": {
+              "right_gripper": 0.0
+            },
+            "source_waypoints": 0,
+            "target_pose": null
+          }
+        },
+        "gripper_waypoints": 6,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 6,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 104,
+            "start": 98
+          },
+          "left_wrist": {
+            "end": 104,
+            "start": 98
+          },
+          "right_wrist": {
+            "end": 104,
+            "start": 98
+          }
+        },
+        "env_step_end": 89,
+        "env_step_start": 83,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 6,
+        "planned_waypoints": 6,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 98,
+            "frame": 97,
+            "start": 97
+          },
+          "left_wrist": {
+            "end": 98,
+            "frame": 97,
+            "start": 97
+          },
+          "right_wrist": {
+            "end": 98,
+            "frame": 97,
+            "start": 97
+          }
+        },
+        "env_step": 83,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.323594331741333,
+            -0.07672087103128433,
+            0.9437245726585388,
+            0.00015316203644033521,
+            -0.7071159482002258,
+            -0.0013012581039220095,
+            0.7070963978767395
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 2.1321779411498376e-11,
+          "left_joint2": -2.340782326000837e-14,
+          "left_joint3": 6.771392291554743e-15,
+          "left_joint4": 1.3510547356169935e-14,
+          "left_joint5": -2.560125202111241e-11,
+          "left_joint6": -1.76047204591967e-10,
+          "right_gripper": 1.0,
+          "right_joint1": -0.06209166347980499,
+          "right_joint2": 2.0045669078826904,
+          "right_joint3": 1.5197864770889282,
+          "right_joint4": -1.0839622020721436,
+          "right_joint5": -0.00010412144911242649,
+          "right_joint6": -1.6342090368270874
+        }
+      },
+      "policy_step": 14
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The jaws stopped against the car, indicating contact. I will make a small test lift to verify the grasp.",
+            "targets": {
+              "right_z": 0.801
+            }
+          },
+          "call_index": 16,
+          "finish_reason": "tool_calls",
+          "latency_s": 28.587622876977548,
+          "model": "gpt-6-astra",
+          "policy_step": 15,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323561,
+              -0.076772,
+              0.951098,
+              0.001131,
+              -0.707159,
+              -0.002293,
+              0.70705
+            ],
+            "named": {
+              "right_z": 0.801
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.323561,
+              -0.076772,
+              0.951098,
+              0.001131,
+              -0.707159,
+              -0.002293,
+              0.70705
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 106,
+            "start": 105
+          },
+          "left_wrist": {
+            "end": 106,
+            "start": 105
+          },
+          "right_wrist": {
+            "end": 106,
+            "start": 105
+          }
+        },
+        "env_step_end": 90,
+        "env_step_start": 89,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 105,
+            "frame": 104,
+            "start": 104
+          },
+          "left_wrist": {
+            "end": 105,
+            "frame": 104,
+            "start": 104
+          },
+          "right_wrist": {
+            "end": 105,
+            "frame": 104,
+            "start": 104
+          }
+        },
+        "env_step": 89,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3235608637332916,
+            -0.07677248865365982,
+            0.9447527527809143,
+            0.001131136785261333,
+            -0.7071590423583984,
+            -0.0022927974350750446,
+            0.7070498466491699
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 2.2874185184873497e-11,
+          "left_joint2": -2.5080296590625564e-14,
+          "left_joint3": 7.27183883855037e-15,
+          "left_joint4": 1.446883384588135e-14,
+          "left_joint5": -2.7444168465562413e-11,
+          "left_joint6": -1.8944129598352788e-10,
+          "right_gripper": 0.29619163214056576,
+          "right_joint1": -0.062014397233724594,
+          "right_joint2": 2.0023555755615234,
+          "right_joint3": 1.5207951068878174,
+          "right_joint4": -1.0843939781188965,
+          "right_joint5": -0.00015168289246503264,
+          "right_joint6": -1.6341506242752075
+        }
+      },
+      "policy_step": 15
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "I will lift another six millimetres and check whether the car remains secured between the pads.",
+            "targets": {
+              "right_z": 0.807
+            }
+          },
+          "call_index": 17,
+          "finish_reason": "tool_calls",
+          "latency_s": 30.097173487069085,
+          "model": "gpt-6-astra",
+          "policy_step": 16,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323464,
+              -0.076768,
+              0.957098,
+              0.001111,
+              -0.707164,
+              -0.002455,
+              0.707045
+            ],
+            "named": {
+              "right_z": 0.807
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.323464,
+              -0.076768,
+              0.957098,
+              0.001111,
+              -0.707164,
+              -0.002455,
+              0.707045
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 108,
+            "start": 107
+          },
+          "left_wrist": {
+            "end": 108,
+            "start": 107
+          },
+          "right_wrist": {
+            "end": 108,
+            "start": 107
+          }
+        },
+        "env_step_end": 91,
+        "env_step_start": 90,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 107,
+            "frame": 106,
+            "start": 106
+          },
+          "left_wrist": {
+            "end": 107,
+            "frame": 106,
+            "start": 106
+          },
+          "right_wrist": {
+            "end": 107,
+            "frame": 106,
+            "start": 106
+          }
+        },
+        "env_step": 90,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.32346418499946594,
+            -0.0767681673169136,
+            0.9503691792488098,
+            0.0011108445469290018,
+            -0.7071635127067566,
+            -0.0024549232330173254,
+            0.707044780254364
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 2.4249661306763315e-11,
+          "left_joint2": -2.652924639679182e-14,
+          "left_joint3": 7.717185045294159e-15,
+          "left_joint4": 1.529433182748466e-14,
+          "left_joint5": -2.9058590603203704e-11,
+          "left_joint6": -2.011280864078202e-10,
+          "right_gripper": 0.18568662134585556,
+          "right_joint1": -0.06175580248236656,
+          "right_joint2": 1.9969966411590576,
+          "right_joint3": 1.5360677242279053,
+          "right_joint4": -1.1048239469528198,
+          "right_joint5": -0.0001499419449828565,
+          "right_joint6": -1.6341495513916016
+        }
+      },
+      "policy_step": 16
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The jaws are slipping off the rounded roof and the car remains on the table. I will reopen for a deeper body grasp.",
+            "targets": {
+              "right_gripper": 1
+            }
+          },
+          "call_index": 18,
+          "finish_reason": "tool_calls",
+          "latency_s": 34.10922996583395,
+          "model": "gpt-6-astra",
+          "policy_step": 17,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 6 waypoints (0.2s). The last 6 move the gripper, once the arm has arrived.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 0,
+        "arms": {
+          "right": {
+            "executed_pose": null,
+            "named": {
+              "right_gripper": 1.0
+            },
+            "source_waypoints": 0,
+            "target_pose": null
+          }
+        },
+        "gripper_waypoints": 6,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 6,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 115,
+            "start": 109
+          },
+          "left_wrist": {
+            "end": 115,
+            "start": 109
+          },
+          "right_wrist": {
+            "end": 115,
+            "start": 109
+          }
+        },
+        "env_step_end": 97,
+        "env_step_start": 91,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 6,
+        "planned_waypoints": 6,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 109,
+            "frame": 108,
+            "start": 108
+          },
+          "left_wrist": {
+            "end": 109,
+            "frame": 108,
+            "start": 108
+          },
+          "right_wrist": {
+            "end": 109,
+            "frame": 108,
+            "start": 108
+          }
+        },
+        "env_step": 91,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3233654201030731,
+            -0.07675245404243469,
+            0.956213653087616,
+            0.000981871853582561,
+            -0.7071610689163208,
+            -0.0025148135609924793,
+            0.7070473432540894
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 2.5625833052767e-11,
+          "left_joint2": -2.7981791010786225e-14,
+          "left_joint3": 8.171117625024264e-15,
+          "left_joint4": 1.6122167620022387e-14,
+          "left_joint5": -3.06735470356756e-11,
+          "left_joint6": -2.1281547357698827e-10,
+          "right_gripper": 0.05076011213025561,
+          "right_joint1": -0.06148919835686684,
+          "right_joint2": 1.9920215606689453,
+          "right_joint3": 1.5527477264404297,
+          "right_joint4": -1.1265770196914673,
+          "right_joint5": -0.00015028729103505611,
+          "right_joint6": -1.634150743484497
+        }
+      },
+      "policy_step": 17
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "With the jaws open and clear of the sides, I will lower toward the broader body below the roof.",
+            "targets": {
+              "right_z": 0.79
+            }
+          },
+          "call_index": 19,
+          "finish_reason": "tool_calls",
+          "latency_s": 25.099326299037784,
+          "model": "gpt-6-astra",
+          "policy_step": 18,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 2 waypoints (0.1s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 2,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323365,
+              -0.076753,
+              0.940098,
+              0.000982,
+              -0.707161,
+              -0.002515,
+              0.707047
+            ],
+            "named": {
+              "right_z": 0.79
+            },
+            "source_waypoints": 81,
+            "target_pose": [
+              0.323365,
+              -0.076753,
+              0.940098,
+              0.000982,
+              -0.707161,
+              -0.002515,
+              0.707047
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 2,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 118,
+            "start": 116
+          },
+          "left_wrist": {
+            "end": 118,
+            "start": 116
+          },
+          "right_wrist": {
+            "end": 118,
+            "start": 116
+          }
+        },
+        "env_step_end": 99,
+        "env_step_start": 97,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 2,
+        "planned_waypoints": 2,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 116,
+            "frame": 115,
+            "start": 115
+          },
+          "left_wrist": {
+            "end": 116,
+            "frame": 115,
+            "start": 115
+          },
+          "right_wrist": {
+            "end": 116,
+            "frame": 115,
+            "start": 115
+          }
+        },
+        "env_step": 97,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3233652412891388,
+            -0.07675260305404663,
+            0.9562138915061951,
+            0.0009818569524213672,
+            -0.7071610689163208,
+            -0.0025149963330477476,
+            0.707047164440155
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 2.7178242295589072e-11,
+          "left_joint2": -2.965426095327163e-14,
+          "left_joint3": 8.67155824278926e-15,
+          "left_joint4": 1.7080460038964435e-14,
+          "left_joint5": -3.251645480650822e-11,
+          "left_joint6": -2.2620950945739793e-10,
+          "right_gripper": 1.0,
+          "right_joint1": -0.06148894503712654,
+          "right_joint2": 1.992020606994629,
+          "right_joint3": 1.5527467727661133,
+          "right_joint4": -1.1265769004821777,
+          "right_joint5": -0.00015030476788524538,
+          "right_joint6": -1.6341506242752075
+        }
+      },
+      "policy_step": 18
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "I will descend five millimetres more to engage the straighter sides of the car.",
+            "targets": {
+              "right_z": 0.786
+            }
+          },
+          "call_index": 20,
+          "finish_reason": "tool_calls",
+          "latency_s": 34.609283067053184,
+          "model": "gpt-6-astra",
+          "policy_step": 19,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323262,
+              -0.076709,
+              0.936098,
+              0.000924,
+              -0.707163,
+              -0.002656,
+              0.707045
+            ],
+            "named": {
+              "right_z": 0.786
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.323262,
+              -0.076709,
+              0.936098,
+              0.000924,
+              -0.707163,
+              -0.002656,
+              0.707045
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 120,
+            "start": 119
+          },
+          "left_wrist": {
+            "end": 120,
+            "start": 119
+          },
+          "right_wrist": {
+            "end": 120,
+            "start": 119
+          }
+        },
+        "env_step_end": 100,
+        "env_step_start": 99,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 119,
+            "frame": 118,
+            "start": 118
+          },
+          "left_wrist": {
+            "end": 119,
+            "frame": 118,
+            "start": 118
+          },
+          "right_wrist": {
+            "end": 119,
+            "frame": 118,
+            "start": 118
+          }
+        },
+        "env_step": 99,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3232622444629669,
+            -0.07670921087265015,
+            0.9412711262702942,
+            0.0009241328807547688,
+            -0.7071632146835327,
+            -0.0026556397788226604,
+            0.7070447206497192
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 2.871075946431212e-11,
+          "left_joint2": -3.13006117877955e-14,
+          "left_joint3": 9.17442899807993e-15,
+          "left_joint4": 1.8022950211242506e-14,
+          "left_joint5": -3.433118719864403e-11,
+          "left_joint6": -2.39386593881008e-10,
+          "right_gripper": 1.0,
+          "right_joint1": -0.061206966638565063,
+          "right_joint2": 2.005922555923462,
+          "right_joint3": 1.511643886566162,
+          "right_joint4": -1.0714547634124756,
+          "right_joint5": -0.00015026179607957602,
+          "right_joint6": -1.6341489553451538
+        }
+      },
+      "policy_step": 19
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "I will lower four millimetres to grasp the body securely while keeping the fingertips above the table.",
+            "targets": {
+              "right_z": 0.782
+            }
+          },
+          "call_index": 21,
+          "finish_reason": "tool_calls",
+          "latency_s": 38.137277343077585,
+          "model": "gpt-6-astra",
+          "policy_step": 20,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323163,
+              -0.076688,
+              0.932098,
+              0.000926,
+              -0.707168,
+              -0.002847,
+              0.707039
+            ],
+            "named": {
+              "right_z": 0.782
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.323163,
+              -0.076688,
+              0.932098,
+              0.000926,
+              -0.707168,
+              -0.002847,
+              0.707039
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 122,
+            "start": 121
+          },
+          "left_wrist": {
+            "end": 122,
+            "start": 121
+          },
+          "right_wrist": {
+            "end": 122,
+            "start": 121
+          }
+        },
+        "env_step_end": 101,
+        "env_step_start": 100,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 121,
+            "frame": 120,
+            "start": 120
+          },
+          "left_wrist": {
+            "end": 121,
+            "frame": 120,
+            "start": 120
+          },
+          "right_wrist": {
+            "end": 121,
+            "frame": 120,
+            "start": 120
+          }
+        },
+        "env_step": 100,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.32316306233406067,
+            -0.07668756693601608,
+            0.9368285536766052,
+            0.0009259607759304345,
+            -0.7071682810783386,
+            -0.002846797928214073,
+            0.7070388793945312
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 3.0086318852928784e-11,
+          "left_joint2": -3.27498580554933e-14,
+          "left_joint3": 9.620537534476246e-15,
+          "left_joint4": 1.8848639622291892e-14,
+          "left_joint5": -3.5945676990500885e-11,
+          "left_joint6": -2.510733010385735e-10,
+          "right_gripper": 1.0,
+          "right_joint1": -0.060938771814107895,
+          "right_joint2": 2.010554790496826,
+          "right_joint3": 1.500037670135498,
+          "right_joint4": -1.0549428462982178,
+          "right_joint5": -0.00015128846280276775,
+          "right_joint6": -1.6341484785079956
+        }
+      },
+      "policy_step": 20
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The pads are now low enough to grip the car's sides. I will close the jaws.",
+            "targets": {
+              "right_gripper": 0
+            }
+          },
+          "call_index": 22,
+          "finish_reason": "tool_calls",
+          "latency_s": 26.610133574111387,
+          "model": "gpt-6-astra",
+          "policy_step": 21,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 6 waypoints (0.2s). The last 6 move the gripper, once the arm has arrived.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 0,
+        "arms": {
+          "right": {
+            "executed_pose": null,
+            "named": {
+              "right_gripper": 0.0
+            },
+            "source_waypoints": 0,
+            "target_pose": null
+          }
+        },
+        "gripper_waypoints": 6,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 6,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 129,
+            "start": 123
+          },
+          "left_wrist": {
+            "end": 129,
+            "start": 123
+          },
+          "right_wrist": {
+            "end": 129,
+            "start": 123
+          }
+        },
+        "env_step_end": 107,
+        "env_step_start": 101,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 6,
+        "planned_waypoints": 6,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 123,
+            "frame": 122,
+            "start": 122
+          },
+          "left_wrist": {
+            "end": 123,
+            "frame": 122,
+            "start": 122
+          },
+          "right_wrist": {
+            "end": 123,
+            "frame": 122,
+            "start": 122
+          }
+        },
+        "env_step": 101,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3230641186237335,
+            -0.07667045295238495,
+            0.9327152967453003,
+            0.0008609371143393219,
+            -0.7071695327758789,
+            -0.00297014438547194,
+            0.7070371508598328
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 3.146252008923156e-11,
+          "left_joint2": -3.420238742289465e-14,
+          "left_joint3": 1.0074406586735307e-14,
+          "left_joint4": 1.9676455086038887e-14,
+          "left_joint5": -3.7560652504931014e-11,
+          "left_joint6": -2.6276070208552937e-10,
+          "right_gripper": 1.0,
+          "right_joint1": -0.060672201216220856,
+          "right_joint2": 2.015120267868042,
+          "right_joint3": 1.489649772644043,
+          "right_joint4": -1.0399067401885986,
+          "right_joint5": -0.00015156979497987777,
+          "right_joint6": -1.634148359298706
+        }
+      },
+      "policy_step": 21
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The jaws have stopped against the wider body. I will test the grip with a five-millimetre lift.",
+            "targets": {
+              "right_z": 0.788
+            }
+          },
+          "call_index": 23,
+          "finish_reason": "tool_calls",
+          "latency_s": 33.6205282099545,
+          "model": "gpt-6-astra",
+          "policy_step": 22,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.323068,
+              -0.076692,
+              0.938098,
+              0.000796,
+              -0.707164,
+              -0.002863,
+              0.707043
+            ],
+            "named": {
+              "right_z": 0.788
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.323068,
+              -0.076692,
+              0.938098,
+              0.000796,
+              -0.707164,
+              -0.002863,
+              0.707043
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 131,
+            "start": 130
+          },
+          "left_wrist": {
+            "end": 131,
+            "start": 130
+          },
+          "right_wrist": {
+            "end": 131,
+            "start": 130
+          }
+        },
+        "env_step_end": 108,
+        "env_step_start": 107,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 130,
+            "frame": 129,
+            "start": 129
+          },
+          "left_wrist": {
+            "end": 130,
+            "frame": 129,
+            "start": 129
+          },
+          "right_wrist": {
+            "end": 130,
+            "frame": 129,
+            "start": 129
+          }
+        },
+        "env_step": 107,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3230678141117096,
+            -0.07669249922037125,
+            0.9326667785644531,
+            0.0007956631598062813,
+            -0.7071638703346252,
+            -0.0028631186578422785,
+            0.7070433497428894
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 3.301493800567101e-11,
+          "left_joint2": -3.5874857365380056e-14,
+          "left_joint3": 1.0574844663401462e-14,
+          "left_joint4": 2.0634744116849145e-14,
+          "left_joint5": -3.940356721465754e-11,
+          "left_joint6": -2.7615479347709027e-10,
+          "right_gripper": 0.360811311006546,
+          "right_joint1": -0.06068567559123039,
+          "right_joint2": 2.01518177986145,
+          "right_joint3": 1.489538550376892,
+          "right_joint4": -1.039978265762329,
+          "right_joint5": -0.0001534003677079454,
+          "right_joint6": -1.6341028213500977
+        }
+      },
+      "policy_step": 22
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The car follows the hand and the jaw opening remains stable. I will lift another seven millimetres to clear the tabletop.",
+            "targets": {
+              "right_z": 0.794
+            }
+          },
+          "call_index": 24,
+          "finish_reason": "tool_calls",
+          "latency_s": 46.62037295312621,
+          "model": "gpt-6-astra",
+          "policy_step": 23,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 1 waypoints (0.0s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 1,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.322985,
+              -0.076717,
+              0.944099,
+              0.00048,
+              -0.707148,
+              -0.002678,
+              0.707061
+            ],
+            "named": {
+              "right_z": 0.794
+            },
+            "source_waypoints": 61,
+            "target_pose": [
+              0.322985,
+              -0.076717,
+              0.944099,
+              0.00048,
+              -0.707148,
+              -0.002678,
+              0.707061
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 1,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 133,
+            "start": 132
+          },
+          "left_wrist": {
+            "end": 133,
+            "start": 132
+          },
+          "right_wrist": {
+            "end": 133,
+            "start": 132
+          }
+        },
+        "env_step_end": 109,
+        "env_step_start": 108,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 1,
+        "planned_waypoints": 1,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 132,
+            "frame": 131,
+            "start": 131
+          },
+          "left_wrist": {
+            "end": 132,
+            "frame": 131,
+            "start": 131
+          },
+          "right_wrist": {
+            "end": 132,
+            "frame": 131,
+            "start": 131
+          }
+        },
+        "env_step": 108,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.3229846656322479,
+            -0.07671663910150528,
+            0.9372206330299377,
+            0.0004801477480214089,
+            -0.7071475982666016,
+            -0.002678381046280265,
+            0.707060694694519
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 3.4390400249773023e-11,
+          "left_joint2": -3.732380208934863e-14,
+          "left_joint3": 1.1020196799375881e-14,
+          "left_joint4": 2.146024548658424e-14,
+          "left_joint5": -4.1017998025916214e-11,
+          "left_joint6": -2.8784147287908013e-10,
+          "right_gripper": 0.35964443280741015,
+          "right_joint1": -0.060467679053545,
+          "right_joint2": 2.01029372215271,
+          "right_joint3": 1.5012831687927246,
+          "right_joint4": -1.0573201179504395,
+          "right_joint5": -0.0001564729172969237,
+          "right_joint6": -1.6340700387954712
+        }
+      },
+      "policy_step": 23
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The car is securely following the gripper and has cleared the table. I will raise it to more than ten centimetres above its starting height.",
+            "targets": {
+              "right_z": 0.905
+            }
+          },
+          "call_index": 25,
+          "finish_reason": "tool_calls",
+          "latency_s": 44.13168550399132,
+          "model": "gpt-6-astra",
+          "policy_step": 24,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 9 waypoints (0.4s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 9,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.322912,
+              -0.076739,
+              1.055099,
+              0.000118,
+              -0.707134,
+              -0.002426,
+              0.707075
+            ],
+            "named": {
+              "right_z": 0.905
+            },
+            "source_waypoints": 161,
+            "target_pose": [
+              0.322912,
+              -0.076739,
+              1.055099,
+              0.000118,
+              -0.707134,
+              -0.002426,
+              0.707075
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 9,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 143,
+            "start": 134
+          },
+          "left_wrist": {
+            "end": 143,
+            "start": 134
+          },
+          "right_wrist": {
+            "end": 143,
+            "start": 134
+          }
+        },
+        "env_step_end": 118,
+        "env_step_start": 109,
+        "episode_end_mid_chunk": false,
+        "executed_waypoints": 9,
+        "planned_waypoints": 9,
+        "stopped_early": false
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 134,
+            "frame": 133,
+            "start": 133
+          },
+          "left_wrist": {
+            "end": 134,
+            "frame": 133,
+            "start": 133
+          },
+          "right_wrist": {
+            "end": 134,
+            "frame": 133,
+            "start": 133
+          }
+        },
+        "env_step": 109,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.32291245460510254,
+            -0.076739102602005,
+            0.9429935812950134,
+            0.00011832422023871914,
+            -0.7071342468261719,
+            -0.002425581216812134,
+            0.7070750594139099
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 3.5766577199947136e-11,
+          "left_joint2": -3.877634500927714e-14,
+          "left_joint3": 1.1474131920204828e-14,
+          "left_joint4": 2.2288082973187864e-14,
+          "left_joint5": -4.263294925421768e-11,
+          "left_joint6": -2.995289016816116e-10,
+          "right_gripper": 0.3568290791577763,
+          "right_joint1": -0.06027746945619583,
+          "right_joint2": 2.0045158863067627,
+          "right_joint3": 1.516699194908142,
+          "right_joint4": -1.0793838500976562,
+          "right_joint5": -0.0001410474069416523,
+          "right_joint6": -1.6340340375900269
+        }
+      },
+      "policy_step": 24
+    },
+    {
+      "calls": [
+        {
+          "accepted": true,
+          "arguments": {
+            "note": "The car is held but has rotated in the jaws. I will lift higher to ensure ten centimetres of clearance and bring the hand back toward its starting position.",
+            "targets": {
+              "right_x": 0.3004,
+              "right_y": -0.2022,
+              "right_z": 0.96
+            }
+          },
+          "call_index": 26,
+          "finish_reason": "tool_calls",
+          "latency_s": 29.627571308985353,
+          "model": "gpt-6-astra",
+          "policy_step": 25,
+          "repair_attempt": 0,
+          "tool": "move_eef",
+          "tool_result": "Accepted: playing 10 waypoints (0.4s). The next observation reports how close the grasp point landed.",
+          "validation_error": null
+        }
+      ],
+      "decision": {
+        "arm_waypoints": 10,
+        "arms": {
+          "right": {
+            "executed_pose": [
+              0.300397,
+              -0.202568,
+              1.1101,
+              -0.000387,
+              -0.707114,
+              -0.00212,
+              0.707097
+            ],
+            "named": {
+              "right_x": 0.3004,
+              "right_y": -0.2022,
+              "right_z": 0.96
+            },
+            "source_waypoints": 181,
+            "target_pose": [
+              0.300397,
+              -0.202568,
+              1.1101,
+              -0.000387,
+              -0.707114,
+              -0.00212,
+              0.707097
+            ]
+          }
+        },
+        "gripper_waypoints": 0,
+        "jitter_dx": 0.0,
+        "jitter_dy": 0.0,
+        "jitter_dz": 0.0,
+        "jitter_sphere_mean_r": 0.0,
+        "jitter_sphere_per_move": false,
+        "jitter_sphere_r": 0.0,
+        "mode": "single_arm",
+        "normalized_from_parallel_calls": false,
+        "plan_status": "Success",
+        "planned_waypoints": 10,
+        "tool": "move_eef"
+      },
+      "execution": {
+        "cameras": {
+          "head": {
+            "end": 147,
+            "start": 144
+          },
+          "left_wrist": {
+            "end": 147,
+            "start": 144
+          },
+          "right_wrist": {
+            "end": 147,
+            "start": 144
+          }
+        },
+        "env_step_end": 121,
+        "env_step_start": 118,
+        "episode_end_mid_chunk": true,
+        "executed_waypoints": 3,
+        "planned_waypoints": 10,
+        "stopped_early": true
+      },
+      "observation": {
+        "cameras": {
+          "head": {
+            "end": 144,
+            "frame": 143,
+            "start": 143
+          },
+          "left_wrist": {
+            "end": 144,
+            "frame": 143,
+            "start": 143
+          },
+          "right_wrist": {
+            "end": 144,
+            "frame": 143,
+            "start": 143
+          }
+        },
+        "env_step": 118,
+        "flange": {
+          "left_ee_pose": [
+            -0.2995290756225586,
+            -0.35229986906051636,
+            0.921500027179718,
+            0.7069999575614929,
+            -4.327419134142474e-08,
+            -6.000607299938565e-08,
+            0.7072135210037231
+          ],
+          "right_ee_pose": [
+            0.32280585169792175,
+            -0.07655731588602066,
+            1.0544676780700684,
+            -0.0003871700610034168,
+            -0.7071137428283691,
+            -0.0021204391960054636,
+            0.707096517086029
+          ]
+        },
+        "state": {
+          "left_gripper": 1.0,
+          "left_joint1": 3.731900205528049e-11,
+          "left_joint2": -4.0448811563630754e-14,
+          "left_joint3": 1.1974551362146143e-14,
+          "left_joint4": 2.3246377086195806e-14,
+          "left_joint5": -4.4475881311178966e-11,
+          "left_joint6": -3.129230208287481e-10,
+          "right_gripper": 0.35404883981854823,
+          "right_joint1": -0.05996416136622429,
+          "right_joint2": 1.985958218574524,
+          "right_joint3": 1.9376105070114136,
+          "right_joint4": -1.5200005769729614,
+          "right_joint5": -0.00012952341057825834,
+          "right_joint6": -1.63400399684906
+        }
+      },
+      "policy_step": 25
+    }
+  ]
+}
