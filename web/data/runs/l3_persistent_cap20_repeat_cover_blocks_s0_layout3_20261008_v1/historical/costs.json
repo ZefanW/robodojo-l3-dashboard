@@ -1,0 +1,825 @@
+{
+  "attempts": [
+    {
+      "attempt_id": "0000",
+      "cached_input_tokens": 0,
+      "input_tokens": 7371,
+      "model_responses": 1,
+      "output_tokens": 104,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0001",
+      "cached_input_tokens": 7168,
+      "input_tokens": 9112,
+      "model_responses": 1,
+      "output_tokens": 79,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0002",
+      "cached_input_tokens": 8960,
+      "input_tokens": 10738,
+      "model_responses": 1,
+      "output_tokens": 163,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0003",
+      "cached_input_tokens": 10496,
+      "input_tokens": 12422,
+      "model_responses": 1,
+      "output_tokens": 137,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0004",
+      "cached_input_tokens": 12288,
+      "input_tokens": 14079,
+      "model_responses": 1,
+      "output_tokens": 250,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0005",
+      "cached_input_tokens": 13952,
+      "input_tokens": 15860,
+      "model_responses": 1,
+      "output_tokens": 289,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0006",
+      "cached_input_tokens": 15616,
+      "input_tokens": 17680,
+      "model_responses": 1,
+      "output_tokens": 212,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0007",
+      "cached_input_tokens": 17536,
+      "input_tokens": 19405,
+      "model_responses": 1,
+      "output_tokens": 59,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0008",
+      "cached_input_tokens": 19200,
+      "input_tokens": 20961,
+      "model_responses": 1,
+      "output_tokens": 62,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0009",
+      "cached_input_tokens": 20864,
+      "input_tokens": 22541,
+      "model_responses": 1,
+      "output_tokens": 186,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0010",
+      "cached_input_tokens": 22400,
+      "input_tokens": 24257,
+      "model_responses": 1,
+      "output_tokens": 100,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0011",
+      "cached_input_tokens": 24064,
+      "input_tokens": 25881,
+      "model_responses": 1,
+      "output_tokens": 323,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0012",
+      "cached_input_tokens": 25728,
+      "input_tokens": 27743,
+      "model_responses": 1,
+      "output_tokens": 86,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0013",
+      "cached_input_tokens": 27520,
+      "input_tokens": 29350,
+      "model_responses": 1,
+      "output_tokens": 96,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0014",
+      "cached_input_tokens": 29184,
+      "input_tokens": 30965,
+      "model_responses": 1,
+      "output_tokens": 100,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0015",
+      "cached_input_tokens": 30720,
+      "input_tokens": 32589,
+      "model_responses": 1,
+      "output_tokens": 81,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0016",
+      "cached_input_tokens": 32384,
+      "input_tokens": 34187,
+      "model_responses": 1,
+      "output_tokens": 76,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0017",
+      "cached_input_tokens": 34048,
+      "input_tokens": 35780,
+      "model_responses": 1,
+      "output_tokens": 79,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0018",
+      "cached_input_tokens": 35584,
+      "input_tokens": 37359,
+      "model_responses": 1,
+      "output_tokens": 142,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0019",
+      "cached_input_tokens": 37248,
+      "input_tokens": 39018,
+      "model_responses": 1,
+      "output_tokens": 72,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0020",
+      "cached_input_tokens": 38784,
+      "input_tokens": 40618,
+      "model_responses": 1,
+      "output_tokens": 59,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0021",
+      "cached_input_tokens": 40320,
+      "input_tokens": 42192,
+      "model_responses": 1,
+      "output_tokens": 66,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0022",
+      "cached_input_tokens": 41984,
+      "input_tokens": 43795,
+      "model_responses": 1,
+      "output_tokens": 60,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0023",
+      "cached_input_tokens": 43520,
+      "input_tokens": 45371,
+      "model_responses": 1,
+      "output_tokens": 59,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0024",
+      "cached_input_tokens": 45184,
+      "input_tokens": 46945,
+      "model_responses": 1,
+      "output_tokens": 63,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0025",
+      "cached_input_tokens": 46720,
+      "input_tokens": 48527,
+      "model_responses": 1,
+      "output_tokens": 74,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0026",
+      "cached_input_tokens": 48256,
+      "input_tokens": 50116,
+      "model_responses": 1,
+      "output_tokens": 57,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0027",
+      "cached_input_tokens": 49920,
+      "input_tokens": 51686,
+      "model_responses": 1,
+      "output_tokens": 88,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0028",
+      "cached_input_tokens": 51456,
+      "input_tokens": 53318,
+      "model_responses": 1,
+      "output_tokens": 82,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0029",
+      "cached_input_tokens": 53120,
+      "input_tokens": 53498,
+      "model_responses": 1,
+      "output_tokens": 84,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0030",
+      "cached_input_tokens": 53376,
+      "input_tokens": 55100,
+      "model_responses": 1,
+      "output_tokens": 77,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0031",
+      "cached_input_tokens": 54912,
+      "input_tokens": 56710,
+      "model_responses": 1,
+      "output_tokens": 69,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0032",
+      "cached_input_tokens": 56576,
+      "input_tokens": 58319,
+      "model_responses": 1,
+      "output_tokens": 72,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0033",
+      "cached_input_tokens": 58112,
+      "input_tokens": 59907,
+      "model_responses": 1,
+      "output_tokens": 62,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0034",
+      "cached_input_tokens": 59648,
+      "input_tokens": 61487,
+      "model_responses": 1,
+      "output_tokens": 60,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0035",
+      "cached_input_tokens": 61312,
+      "input_tokens": 63063,
+      "model_responses": 1,
+      "output_tokens": 60,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0036",
+      "cached_input_tokens": 62848,
+      "input_tokens": 64639,
+      "model_responses": 1,
+      "output_tokens": 57,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0037",
+      "cached_input_tokens": 64512,
+      "input_tokens": 66209,
+      "model_responses": 1,
+      "output_tokens": 80,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0038",
+      "cached_input_tokens": 66048,
+      "input_tokens": 67840,
+      "model_responses": 1,
+      "output_tokens": 99,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0039",
+      "cached_input_tokens": 67584,
+      "input_tokens": 68034,
+      "model_responses": 1,
+      "output_tokens": 78,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0040",
+      "cached_input_tokens": 67968,
+      "input_tokens": 68192,
+      "model_responses": 1,
+      "output_tokens": 96,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0041",
+      "cached_input_tokens": 68096,
+      "input_tokens": 69801,
+      "model_responses": 1,
+      "output_tokens": 71,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0042",
+      "cached_input_tokens": 69632,
+      "input_tokens": 69959,
+      "model_responses": 1,
+      "output_tokens": 81,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0043",
+      "cached_input_tokens": 69760,
+      "input_tokens": 71560,
+      "model_responses": 1,
+      "output_tokens": 81,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0044",
+      "cached_input_tokens": 71296,
+      "input_tokens": 73159,
+      "model_responses": 1,
+      "output_tokens": 112,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0045",
+      "cached_input_tokens": 73088,
+      "input_tokens": 73353,
+      "model_responses": 1,
+      "output_tokens": 127,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0046",
+      "cached_input_tokens": 73216,
+      "input_tokens": 75002,
+      "model_responses": 1,
+      "output_tokens": 119,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0047",
+      "cached_input_tokens": 74752,
+      "input_tokens": 75219,
+      "model_responses": 1,
+      "output_tokens": 156,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0048",
+      "cached_input_tokens": 75008,
+      "input_tokens": 76992,
+      "model_responses": 1,
+      "output_tokens": 130,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0049",
+      "cached_input_tokens": 76800,
+      "input_tokens": 77237,
+      "model_responses": 1,
+      "output_tokens": 131,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0050",
+      "cached_input_tokens": 77184,
+      "input_tokens": 79022,
+      "model_responses": 1,
+      "output_tokens": 118,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0051",
+      "cached_input_tokens": 78848,
+      "input_tokens": 79257,
+      "model_responses": 1,
+      "output_tokens": 94,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0052",
+      "cached_input_tokens": 79104,
+      "input_tokens": 80877,
+      "model_responses": 1,
+      "output_tokens": 130,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0053",
+      "cached_input_tokens": 80640,
+      "input_tokens": 81094,
+      "model_responses": 1,
+      "output_tokens": 84,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0054",
+      "cached_input_tokens": 81024,
+      "input_tokens": 81267,
+      "model_responses": 1,
+      "output_tokens": 71,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0055",
+      "cached_input_tokens": 81152,
+      "input_tokens": 82854,
+      "model_responses": 1,
+      "output_tokens": 118,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0056",
+      "cached_input_tokens": 82688,
+      "input_tokens": 84497,
+      "model_responses": 1,
+      "output_tokens": 158,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0057",
+      "cached_input_tokens": 84352,
+      "input_tokens": 84767,
+      "model_responses": 1,
+      "output_tokens": 114,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0058",
+      "cached_input_tokens": 84608,
+      "input_tokens": 84965,
+      "model_responses": 1,
+      "output_tokens": 119,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0059",
+      "cached_input_tokens": 0,
+      "input_tokens": 86611,
+      "model_responses": 1,
+      "output_tokens": 124,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0060",
+      "cached_input_tokens": 86400,
+      "input_tokens": 88387,
+      "model_responses": 1,
+      "output_tokens": 117,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0061",
+      "cached_input_tokens": 88192,
+      "input_tokens": 90157,
+      "model_responses": 1,
+      "output_tokens": 171,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0062",
+      "cached_input_tokens": 89984,
+      "input_tokens": 90450,
+      "model_responses": 1,
+      "output_tokens": 188,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0063",
+      "cached_input_tokens": 90368,
+      "input_tokens": 90748,
+      "model_responses": 1,
+      "output_tokens": 115,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0064",
+      "cached_input_tokens": 90624,
+      "input_tokens": 90976,
+      "model_responses": 1,
+      "output_tokens": 85,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0065",
+      "cached_input_tokens": 90880,
+      "input_tokens": 92584,
+      "model_responses": 1,
+      "output_tokens": 573,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0066",
+      "cached_input_tokens": 92416,
+      "input_tokens": 93271,
+      "model_responses": 1,
+      "output_tokens": 73,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0067",
+      "cached_input_tokens": 93184,
+      "input_tokens": 94858,
+      "model_responses": 1,
+      "output_tokens": 82,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0068",
+      "cached_input_tokens": 94720,
+      "input_tokens": 96457,
+      "model_responses": 1,
+      "output_tokens": 103,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0069",
+      "cached_input_tokens": 96256,
+      "input_tokens": 98078,
+      "model_responses": 1,
+      "output_tokens": 159,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0070",
+      "cached_input_tokens": 97920,
+      "input_tokens": 99890,
+      "model_responses": 1,
+      "output_tokens": 216,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0071",
+      "cached_input_tokens": 99712,
+      "input_tokens": 100218,
+      "model_responses": 1,
+      "output_tokens": 100,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0072",
+      "cached_input_tokens": 100096,
+      "input_tokens": 100410,
+      "model_responses": 1,
+      "output_tokens": 126,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0073",
+      "cached_input_tokens": 100352,
+      "input_tokens": 102187,
+      "model_responses": 1,
+      "output_tokens": 107,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0074",
+      "cached_input_tokens": 102016,
+      "input_tokens": 103846,
+      "model_responses": 1,
+      "output_tokens": 126,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0075",
+      "cached_input_tokens": 103680,
+      "input_tokens": 105508,
+      "model_responses": 1,
+      "output_tokens": 156,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0076",
+      "cached_input_tokens": 105216,
+      "input_tokens": 107211,
+      "model_responses": 1,
+      "output_tokens": 108,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0077",
+      "cached_input_tokens": 107008,
+      "input_tokens": 108874,
+      "model_responses": 1,
+      "output_tokens": 91,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0078",
+      "cached_input_tokens": 108672,
+      "input_tokens": 110539,
+      "model_responses": 1,
+      "output_tokens": 92,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0079",
+      "cached_input_tokens": 110336,
+      "input_tokens": 112174,
+      "model_responses": 1,
+      "output_tokens": 188,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0080",
+      "cached_input_tokens": 112000,
+      "input_tokens": 114033,
+      "model_responses": 1,
+      "output_tokens": 84,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0081",
+      "cached_input_tokens": 113920,
+      "input_tokens": 115659,
+      "model_responses": 1,
+      "output_tokens": 111,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0082",
+      "cached_input_tokens": 115456,
+      "input_tokens": 117339,
+      "model_responses": 1,
+      "output_tokens": 78,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0083",
+      "cached_input_tokens": 117120,
+      "input_tokens": 118963,
+      "model_responses": 1,
+      "output_tokens": 118,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0084",
+      "cached_input_tokens": 118784,
+      "input_tokens": 120636,
+      "model_responses": 1,
+      "output_tokens": 68,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0085",
+      "cached_input_tokens": 120448,
+      "input_tokens": 122240,
+      "model_responses": 1,
+      "output_tokens": 80,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0086",
+      "cached_input_tokens": 122112,
+      "input_tokens": 123883,
+      "model_responses": 1,
+      "output_tokens": 95,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0087",
+      "cached_input_tokens": 123648,
+      "input_tokens": 125499,
+      "model_responses": 1,
+      "output_tokens": 169,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0088",
+      "cached_input_tokens": 125312,
+      "input_tokens": 127200,
+      "model_responses": 1,
+      "output_tokens": 116,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0089",
+      "cached_input_tokens": 127104,
+      "input_tokens": 128856,
+      "model_responses": 1,
+      "output_tokens": 86,
+      "paid_requests": 1,
+      "usage_known": true
+    },
+    {
+      "attempt_id": "0090",
+      "cached_input_tokens": 128640,
+      "input_tokens": 130496,
+      "model_responses": 1,
+      "output_tokens": 444,
+      "paid_requests": 1,
+      "usage_known": true
+    }
+  ],
+  "cache_is_input_subset": true,
+  "unknown_is_null": true
+}
