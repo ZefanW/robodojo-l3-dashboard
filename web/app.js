@@ -5,7 +5,7 @@ const make = (tag, text, className) => {const n=document.createElement(tag); if(
 const pct = v => typeof v === "number" && Number.isFinite(v) ? (v*100).toFixed(1)+"%" : "—";
 const decimals = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(3) : "—";
 const standardDeviation = variance => typeof variance === "number" && Number.isFinite(variance) && variance >= 0 ? Math.sqrt(variance) : null;
-const points = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2)+" 个百分点" : "—";
+const points = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2)+"%" : "—";
 const known = v => v === null || v === undefined ? "unknown" : String(v);
 let ledger = {runs:[],groups:[]};
 let loading=false, lastPayload="";
