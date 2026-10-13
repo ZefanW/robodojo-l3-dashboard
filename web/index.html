@@ -1,25 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Reproducible RoboDojo L3 episodes, native evidence and exact protocol coverage.">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RoboDojo L3 实验结果、任务视频与原生执行证据。">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src https:; img-src 'self'; base-uri 'none'; form-action 'none'">
-  <title>RoboDojo L3 · Research ledger</title>
-  <link rel="stylesheet" href="style.css?v=explicit-rounds-v3">
-  <script src="app.js?v=explicit-rounds-v3" defer></script>
+  <title>RoboDojo L3 · 实验与任务</title>
+  <link rel="stylesheet" href="style.css?v=experiment-browser-v1"><script src="app.js?v=experiment-browser-v1" defer></script>
 </head>
 <body>
-  <header><a class="brand" href="./"><span class="mark" aria-hidden="true">L3</span> RoboDojo <span>Research ledger</span></a><span class="readonly">Read only</span></header>
+  <header><a class="brand" href="./"><span class="mark" aria-hidden="true">L3</span> RoboDojo <span>Research results</span></a><a href="https://robodojo-benchmark.com/leaderboard" target="_blank" rel="noopener noreferrer">RoboDojo 官网 ↗</a></header>
   <main>
-    <section class="intro"><p class="eyebrow">CONTROL INTERFACES / REPRODUCIBLE EVIDENCE</p><h1>Every result,<br>with its evidence.</h1><p class="subtitle">Persistent Codex control. Explicit protocols. Native terminal outcomes.<br>Inspect what ran, what happened, and which episodes are still missing.</p></section>
-    <div id="status" role="status" aria-live="polite">Loading the result ledger…</div>
-    <section class="stats" aria-label="Result coverage"><div><span id="run-count">—</span><p>Native completed episodes</p></div><div><span id="group-count">—</span><p>Harness configurations</p></div><div><span id="control-count">—</span><p>Executed native controls</p></div></section>
-    <section aria-labelledby="protocol-title"><div class="section-head"><h2 id="protocol-title">Harness progress & scores</h2><p>One summary per harness configuration; episode evidence below.</p></div><div id="groups" class="groups"></div></section>
-    <section aria-labelledby="episode-title"><div class="section-head"><h2 id="episode-title">Episode ledger</h2><label class="search">Search task or run <input id="search" type="search" placeholder="Task, seed, profile…" autocomplete="off"></label></div><div class="filters"><label>Variant <select id="variant"><option value="all">All variants</option><option value="standard">Standard</option><option value="random">Random</option></select></label><label>Profile <select id="profile"><option value="all">All profiles</option></select></label></div><div class="table-wrap"><table><thead><tr><th>Task / episode</th><th>Profile</th><th>Score</th><th>Success</th><th>Decisions / controls</th><th>Evidence</th></tr></thead><tbody id="episodes"></tbody></table></div><div id="empty" class="empty" hidden><span class="empty-symbol" aria-hidden="true">∅</span><h3>No published episodes yet.</h3><p>This is a fresh result list. Offline contract tests do not count as benchmark results.</p></div></section>
-    <section id="detail" class="detail" aria-labelledby="detail-title" hidden><button id="close-detail" class="close" type="button">Close details ×</button><p class="eyebrow">EPISODE EVIDENCE</p><h2 id="detail-title"></h2><div id="detail-body"></div></section>
-    <section class="notes"><h2>Read the numbers in context.</h2><p>Each round weights selected task families within each capability, then capabilities equally. Multi-round scores average complete rounds equally; the final total requires full declared coverage. Round variance uses complete rounds only (sample variance, ddof=1). Different scene and variant selections remain explicit. These are not claims of official leaderboard equivalence.</p><p><strong>cap20</strong> limits each EEF execution to at most 20 native controls. Model decisions are a separate budget. A closed gripper, an upload receipt, or a playable video alone is not native success evidence.</p></section>
-  </main>
-  <footer><span>RoboDojo L3 Lab · Reproducible control research</span><span>Original camera videos · Public actions & feedback · Source and cost records</span></footer>
-</body>
-</html>
+    <section class="intro"><p class="eyebrow">EXPERIMENTS / TASKS / ROLLOUTS</p><h1>实验与任务</h1><p class="subtitle">选择实验，查看每个任务的结果、原始视频与执行记录。</p></section>
+    <div class="overview"><div class="stats" aria-label="已发布结果"><div><span id="group-count">—</span><p>实验配置</p></div><div><span id="run-count">—</span><p>原生完成并发布</p></div><div><span id="control-count">—</span><p>实际控制步</p></div></div><div id="status" role="status" aria-live="polite">正在加载公开结果…</div></div>
+    <section aria-labelledby="experiments-title"><div class="section-head"><h2 id="experiments-title">选择实验</h2><label class="search">查找实验 <input id="experiment-search" type="search" placeholder="名称、effort 或实验 ID" autocomplete="off"></label></div><div id="experiments" class="experiment-list"></div></section>
+    <section id="workspace" hidden>
+      <div class="experiment-heading"><div><p class="eyebrow">EXPERIMENT ROLLOUTS</p><h2 id="experiment-title"></h2><p id="experiment-id" class="small"></p></div><div id="experiment-metrics" class="metrics"></div></div>
+      <div id="round-tabs" class="pills" role="group" aria-label="轮次"></div><p id="round-config" class="small"></p><p id="coverage-note" class="small"></p>
+      <details class="audit"><summary>实验汇总、轮间方差与环境来源</summary><div id="audit-body"></div></details>
+      <div id="capabilities" class="pills" role="group" aria-label="能力筛选"></div>
+      <div class="rollout-layout">
+        <aside class="task-sidebar" aria-label="任务列表"><label class="task-search">查找任务<input id="search" type="search" placeholder="任务名称或 run ID" autocomplete="off"></label><div class="filters"><label>结果<select id="outcome"><option value="all">全部结果</option><option>成功</option><option>失败</option><option>未发布</option><option>结果待核对</option><option>未知</option></select></label><label>场景变体<select id="variant"><option value="all">全部变体</option><option value="standard">Standard</option><option value="random">Random</option></select></label></div><p id="task-count" class="small" aria-live="polite"></p><div id="episodes" class="task-list"></div></aside>
+        <section id="detail" class="detail" aria-labelledby="detail-title"><button id="close-detail" class="close" type="button" aria-label="关闭任务详情">×</button><h2 id="detail-title">选择一个任务</h2><p id="detail-caption" class="small"></p><div id="detail-body"></div></section>
+      </div>
+    </section>
+    <section class="notes"><h2>关于结果</h2><p>每轮按任务族聚合，再对五类能力等权；多轮均值与样本方差只使用完整轮次（ddof=1，单位 pp²）。不同轮次的 seed、scene 和 variant 均单独标注。本页面是研究实验记录，不代表官网榜单同协议排名。</p><p>cap20 表示每次 EEF 执行最多 20 个原生控制步，模型决策数单独记录。成功与失败取自原生终局；未发布的任务不推断运行状态。视频为原始相机记录，配置、费用与证据可在任务详情中展开。</p></section>
+  </main><footer><span>RoboDojo L3 Lab · Research results</span><span>原始视频 · 公开动作反馈 · 可追溯证据</span></footer>
+</body></html>
