@@ -122,13 +122,44 @@ function selectExperiment(g){
   byId("search").value="";byId("variant").value="all";byId("outcome").value="all";
   renderExperiments();renderExperiment();
 }
+function experimentSummary(g){
+  const rounds=g.rounds||[], completeRounds=rounds.filter(r=>r.status==="complete"), multiple=rounds.length>1;
+  const ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
+  const statistics=g.round_statistics||{}, finite=v=>typeof v==="number"&&Number.isFinite(v);
+  const score=ambiguous?null:multiple?statistics.score_mean:g.aggregation_status==="complete"?g.metrics.score:g.metrics.observed_score;
+  const sr=ambiguous?null:multiple?statistics.success_rate_mean:g.aggregation_status==="complete"?g.metrics.success_rate:g.metrics.observed_success_rate;
+  const n=completeRounds.length;
+  const variance=!ambiguous&&n>=2&&statistics.completed_rounds===n?statistics.score_variance_pp2:null;
+  const capabilities=["Generalization","Precision","Long-Horizon","Memory","Open"].map(name=>{
+    const dimension=g.dimensions?.[name]||{};
+    const values=completeRounds.map(r=>r.dimensions?.[name]?.score);
+    const value=ambiguous?null:multiple?(n&&values.every(finite)?values.reduce((a,b)=>a+b,0)/n:null):dimension.observed_score;
+    return {name,score:value,completed:dimension.completed||0,expected:dimension.expected||0};
+  });
+  return {score,sr,variance,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?"完整第一轮":"当前已发布部分，非最终成绩"};
+}
+function renderExperimentSummary(button,g){
+  const value=experimentSummary(g),stats=make("span",undefined,"card-stats");
+  for(const [text,label] of [[pct(value.score),"Score"],[value.variance==null?"—":decimals(value.variance)+" pp²","Score 方差"]]){
+    const item=make("span",undefined,"card-stat");item.append(make("b",text),make("span",label));stats.append(item);
+  }
+  button.append(stats,make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 方差 ddof=1","card-stat-note"),make("span",value.basis,"card-stat-note"));
+  const divisions=make("span",undefined,"card-capabilities");
+  const names={Generalization:"泛化",Precision:"精细操作","Long-Horizon":"长程",Memory:"记忆",Open:"开放"};
+  for(const item of value.capabilities){
+    const row=make("span",undefined,"card-capability");row.title=item.name;
+    row.append(make("span",names[item.name]),make("b",pct(item.score)),make("span",item.completed+"/"+item.expected));divisions.append(row);
+  }
+  button.append(divisions);
+}
 function renderExperiments(){
   const host=byId("experiments"),q=byId("experiment-search").value.trim().toLowerCase();host.replaceChildren();
   const ordered=[...ledger.groups].sort((a,b)=>["low","medium","high","xhigh"].indexOf(a.model.thinking_effort)-["low","medium","high","xhigh"].indexOf(b.model.thinking_effort));
   for(const g of ordered.filter(g=>[experimentName(g),g.selection_id,g.protocol.id,g.selection_title].join(" ").toLowerCase().includes(q))){
     const button=make("button",undefined,"experiment-card"+(g.group_id===selectedGroupId?" selected":""));button.type="button";
     button.setAttribute("aria-pressed",String(g.group_id===selectedGroupId));button.setAttribute("aria-label",experimentName(g));
-    button.append(make("span",g.model.thinking_effort.toUpperCase(),"effort"),make("strong",g.protocol.profile),make("span",g.model.name,"small"),make("span",g.metrics.completed+" / "+g.metrics.expected+" 已发布 · "+(g.rounds||[]).length+" 轮","card-coverage"),make("span",g.selection_id,"experiment-id"));
+    button.append(make("span",g.model.thinking_effort.toUpperCase(),"effort"),make("strong",g.protocol.profile),make("span",g.model.name,"small"),make("span",g.metrics.completed+" / "+g.metrics.expected+" 已发布 · "+(g.rounds||[]).length+" 轮","card-coverage"));
+    renderExperimentSummary(button,g);button.append(make("span",g.selection_id,"experiment-id"));
     button.addEventListener("click",()=>selectExperiment(g));host.append(button);
   }
   if(!host.children.length)host.append(make("p","没有匹配的实验。试试 medium、cap20 或实验 ID。","small"));
