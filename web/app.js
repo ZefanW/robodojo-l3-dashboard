@@ -4,6 +4,8 @@ const byId = id => document.getElementById(id);
 const make = (tag, text, className) => {const n=document.createElement(tag); if(text!==undefined)n.textContent=String(text);if(className)n.className=className;return n;};
 const pct = v => typeof v === "number" && Number.isFinite(v) ? (v*100).toFixed(1)+"%" : "—";
 const decimals = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(3) : "—";
+const standardDeviation = variance => typeof variance === "number" && Number.isFinite(variance) && variance >= 0 ? Math.sqrt(variance) : null;
+const points = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2)+" 个百分点" : "—";
 const known = v => v === null || v === undefined ? "unknown" : String(v);
 let ledger = {runs:[],groups:[]};
 let loading=false, lastPayload="";
@@ -31,7 +33,7 @@ function renderAudit(g){
     card.append(metrics);
     const progress=make("progress");progress.max=g.metrics.expected;progress.value=g.metrics.completed;
     progress.setAttribute("aria-label",g.metrics.completed+" of "+g.metrics.expected+" episodes completed and published");card.append(progress);
-    card.append(make("p",ambiguous?"Multiple attempts overlap an episode. Scores are withheld until its result is resolved.":complete?"All selected episodes are complete.":multiRound?"The campaign score averages completed rounds equally. Partial rounds are listed below and excluded from the round mean and variance.":"Current scores use completed episodes only. The final score appears at full coverage.","small"));
+    card.append(make("p",ambiguous?"Multiple attempts overlap an episode. Scores are withheld until its result is resolved.":complete?"All selected episodes are complete.":multiRound?"The campaign score averages completed rounds equally. Partial rounds are listed below and excluded from the round mean and standard deviation.":"Current scores use completed episodes only. The final score appears at full coverage.","small"));
     renderRounds(card,g);
     const dimensions=make("details"),dimensionTitle=make("summary","Capability scores and coverage");dimensions.append(dimensionTitle);
     for(const [name,m]of Object.entries(g.dimensions)){
@@ -75,7 +77,7 @@ function renderRounds(card,g){
   const section=make("section",undefined,"rounds");
   section.append(make("h4","Rounds · "+stats.completed_rounds+" / "+stats.expected_rounds+" complete"));
   if(g.selection_title)section.append(make("p",g.selection_title,"small"));
-  if(g.preserved_unselected_run_ids?.length)section.append(make("p",g.preserved_unselected_run_ids.length+" original records are preserved in the episode ledger but are outside this round selection and excluded from its score and variance.","small"));
+  if(g.preserved_unselected_run_ids?.length)section.append(make("p",g.preserved_unselected_run_ids.length+" original records are preserved in the episode ledger but are outside this round selection and excluded from its score and standard deviation.","small"));
   if(g.historical_campaign)section.append(make("p","Historical campaign: original outcomes are regrouped by the declared round selection. Reused results retain their original policy and protocol in the source breakdown.","small"));
   const table=make("table"),head=make("tr");
   for(const label of ["Round","Configuration","Published","Score","SR"])head.append(make("th",label));table.append(head);
@@ -85,10 +87,10 @@ function renderRounds(card,g){
     for(const value of [r.round,config,r.metrics.completed+" / "+r.metrics.expected+" · "+status,pct(r.metrics.score),pct(r.metrics.success_rate)])row.append(make("td",value));table.append(row);
   }
   const wrap=make("div",undefined,"table-wrap");wrap.append(table);section.append(wrap);
-  const variation=make("p",undefined,"small round-variance");
-  variation.textContent=stats.completed_rounds<2?"Round variance: — · at least 2 complete, unambiguous rounds are required.":
-    "Sample variance (n = "+stats.completed_rounds+", ddof = 1): Score "+decimals(stats.score_variance_pp2)+" pp² · SR "+decimals(stats.success_rate_variance_pp2)+" pp². Standard deviation: Score "+decimals(stats.score_stddev_pp)+" pp · SR "+decimals(stats.success_rate_stddev_pp)+" pp.";
-  section.append(variation,make("p","Round statistics describe variation across the listed seed, scene and variant selections; they are not variance from repeated seeds under an identical configuration. Each round weights its selected capabilities equally.","small"));card.append(section);
+  const variation=make("p",undefined,"small round-stddev");
+  variation.textContent=stats.completed_rounds<2?"轮间标准差：— · 至少需要 2 个完整且无歧义的轮次。":
+    "轮间标准差：Score "+points(standardDeviation(stats.score_variance_pp2))+" · SR "+points(standardDeviation(stats.success_rate_variance_pp2))+"（"+stats.completed_rounds+" 个完整轮）";
+  section.append(variation,make("p","标准差表示这些完整轮次之间的成绩波动。各轮场景或变体可能不同，并非同一配置换 seed 的重复实验；每轮五类能力等权。","small"));card.append(section);
 }
 // Experiment membership comes from the published index, never from name matching.
 let selectedGroupId = null, selectedRound = "1", selectedCapability = "all";
@@ -129,21 +131,21 @@ function experimentSummary(g){
   const score=ambiguous?null:multiple?statistics.score_mean:g.aggregation_status==="complete"?g.metrics.score:g.metrics.observed_score;
   const sr=ambiguous?null:multiple?statistics.success_rate_mean:g.aggregation_status==="complete"?g.metrics.success_rate:g.metrics.observed_success_rate;
   const n=completeRounds.length;
-  const variance=!ambiguous&&n>=2&&statistics.completed_rounds===n?statistics.score_variance_pp2:null;
+  const stddev=!ambiguous&&n>=2&&statistics.completed_rounds===n?standardDeviation(statistics.score_variance_pp2):null;
   const capabilities=["Generalization","Precision","Long-Horizon","Memory","Open"].map(name=>{
     const dimension=g.dimensions?.[name]||{};
     const values=completeRounds.map(r=>r.dimensions?.[name]?.score);
     const value=ambiguous?null:multiple?(n&&values.every(finite)?values.reduce((a,b)=>a+b,0)/n:null):dimension.observed_score;
     return {name,score:value,completed:dimension.completed||0,expected:dimension.expected||0};
   });
-  return {score,sr,variance,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?"完整第一轮":"当前已发布部分，非最终成绩"};
+  return {score,sr,stddev,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?"完整第一轮":"当前已发布部分，非最终成绩"};
 }
 function renderExperimentSummary(button,g){
   const value=experimentSummary(g),stats=make("span",undefined,"card-stats");
-  for(const [text,label] of [[pct(value.score),"Score"],[value.variance==null?"—":decimals(value.variance)+" pp²","Score 方差"]]){
+  for(const [text,label] of [[pct(value.score),"Score"],[points(value.stddev),"Score 标准差"]]){
     const item=make("span",undefined,"card-stat");item.append(make("b",text),make("span",label));stats.append(item);
   }
-  button.append(stats,make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 方差 ddof=1","card-stat-note"),make("span",value.basis,"card-stat-note"));
+  button.append(stats,make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 轮间波动","card-stat-note"),make("span",value.basis,"card-stat-note"));
   const divisions=make("span",undefined,"card-capabilities");
   const names={Generalization:"泛化",Precision:"精细操作","Long-Horizon":"长程",Memory:"记忆",Open:"开放"};
   for(const item of value.capabilities){
