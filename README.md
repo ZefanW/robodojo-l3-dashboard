@@ -1,26 +1,24 @@
 # RoboDojo L3 results dashboard
 
-[Open the dashboard](https://zefanw.github.io/robodojo-l3-dashboard/)
+[Open the live dashboard](https://robodojo-live-results.glassy-quail-2213.chatgpt.site/)
 
-This public repository hosts a read-only, validated projection of RoboDojo L3
-results. The runner source remains in a separate private repository. No model
-credentials, private conversations, runtime settings or source Git history are
-mirrored here. Original videos and evidence link to accepted cloud objects.
+This repository preserves historical published files and the original GitHub Pages
+entry point, which redirects to the live dashboard. New result data does not
+require a Git commit, repository push, or website redeployment.
 
-[Experiment protocol](docs/EXPERIMENT_PROTOCOL.md) defines task/variant/seed/scene
-selection, fixed Codex CLI 0.153.4, native control limits, capability weighting,
-recovery accounting and variance. Odd rounds use random variants where present;
-even rounds use standard. Each variant advances its own scene sequence.
+The fixed frontend reads a cloud data catalog and refreshes every 60 seconds.
+A trusted intake service checks the upload inbox, validates each result bundle,
+uploads its original videos and evidence as separate immutable cloud objects,
+and updates the catalog. The intake currently runs on the maintainer's Mac; new
+uploads wait while that host is offline. Already published results remain online.
 
-A trusted maintainer validates completed cloud receipts and updates this
-repository automatically. The browser refreshes every minute. Publication is
-normally checked every five minutes while the maintainer host is awake and
-connected; native completion, cloud validation and deployed-site coverage are
-separate milestones. Incomplete rounds are never presented as final full scores.
+The original videos and evidence are unchanged. Formal results require native
+terminal evidence, source/configuration and cost records, privacy validation,
+and actual cloud readback. Supplementary review packages remain explicitly
+separate. Incomplete coverage is not presented as a completed benchmark.
 
-The deployment workflow verifies mirror bytes and the static file allowlist.
-Full native provenance, privacy and aggregation validation happens before the
-snapshot enters this repository. Public availability is not an official benchmark
-submission or a claim of cross-simulator equivalence.
+[Experiment protocol](docs/EXPERIMENT_PROTOCOL.md) documents task selection,
+control limits, accounting and aggregation. Archived files in this repository
+are historical snapshots, not the current live result directory.
 
 Original dashboard code is MIT; referenced upstream assets retain their licenses.

@@ -1,34 +1,16 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="RoboDojo L3 实验结果、任务视频与原生执行证据。">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src https:; img-src 'self'; base-uri 'none'; form-action 'none'">
-  <title>RoboDojo L3 · 实验与任务</title>
-  <link rel="stylesheet" href="style.css?v=native-progress-20261014"><script src="app.js?v=stddev-percent-20261013" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=https://robodojo-live-results.glassy-quail-2213.chatgpt.site/">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'">
+  <link rel="canonical" href="https://robodojo-live-results.glassy-quail-2213.chatgpt.site/">
+  <link rel="stylesheet" href="style.css">
+  <title>RoboDojo L3 · 实时结果看板</title>
 </head>
-<body>
-  <header><a class="brand" href="./"><span class="mark" aria-hidden="true">L3</span> RoboDojo <span>Research results</span></a><a href="https://robodojo-benchmark.com/leaderboard" target="_blank" rel="noopener noreferrer">RoboDojo 官网 ↗</a></header>
-  <main>
-    <section class="intro"><p class="eyebrow">EXPERIMENTS / TASKS / ROLLOUTS</p><h1>实验与任务</h1><p class="subtitle">选择实验，查看每个任务的结果、原始视频与执行记录。</p></section>
-    <div class="overview"><div class="stats" aria-label="已发布结果"><div><span id="group-count">—</span><p>实验配置</p></div><div><span id="run-count">—</span><p>原生完成并发布</p></div><div><span id="control-count">—</span><p>实际控制步</p></div></div><div id="status" role="status" aria-live="polite">正在加载公开结果…</div></div>
-    <section class="execution-snapshot" aria-labelledby="execution-title">
-      <div class="section-head"><h2 id="execution-title">LOW 运行进度</h2><time class="small" datetime="2026-10-14T16:00:29.254467+08:00">核对于 2026-10-14 16:00（UTC+8）</time></div>
-      <div class="execution-summary"><div><strong>167 <span>/ 168</span></strong><p>原生评测已完成</p></div><div><strong>1</strong><p>正在运行 · R4 物体分类 <code>classify_objects</code></p></div><div><strong>158</strong><p>已公开入榜 · 另 9 条已完成，发布材料整理中</p></div></div>
-      <p class="execution-note">搭塔 <code>build_tower</code> 已结束：<b>30 / 100</b>。以下为最新 7 条原生结果预览，尚未计入下方榜单；视频与完整记录验证发布后再入榜。分数沿用原生评分，包含机械臂归位条件。</p>
-      <details><summary>查看最新完成的 7 条 LOW 结果</summary><div class="table-wrap"><table><thead><tr><th>轮次</th><th>任务</th><th>原生分数</th><th>控制步</th><th>发布状态</th></tr></thead><tbody><tr><td>R2</td><td>整理桌面 <span class="small">organize_table</span></td><td>25 / 100</td><td>892</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>井字棋 <span class="small">play_tic_tac_toe</span></td><td>50 / 100</td><td>688</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>填满蛋托 <span class="small">fill_egg_holder</span></td><td>25 / 100</td><td>608</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>整理桌面 <span class="small">organize_table</span></td><td>25 / 100</td><td>772</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>制作 Kong 玩具 <span class="small">make_kong</span></td><td>0 / 100</td><td>362</td><td>原生终局 · 待发布</td></tr><tr><td>R4</td><td>搭塔 <span class="small">build_tower</span></td><td>30 / 100</td><td>700</td><td>原生终局 · 待发布</td></tr><tr><td>R4</td><td>填满笔筒 <span class="small">fill_pen_holder</span></td><td>0 / 100</td><td>859</td><td>原生终局 · 待发布</td></tr></tbody></table></div></details>
-    </section>
-    <section aria-labelledby="experiments-title"><div class="section-head"><h2 id="experiments-title">选择实验</h2><label class="search">查找实验 <input id="experiment-search" type="search" placeholder="名称、effort 或实验 ID" autocomplete="off"></label></div><div id="experiments" class="experiment-list"></div></section>
-    <section id="workspace" hidden>
-      <div class="experiment-heading"><div><p class="eyebrow">EXPERIMENT ROLLOUTS</p><h2 id="experiment-title"></h2><p id="experiment-id" class="small"></p></div><div id="experiment-metrics" class="metrics"></div></div>
-      <div id="round-tabs" class="pills" role="group" aria-label="轮次"></div><p id="round-config" class="small"></p><p id="coverage-note" class="small"></p>
-      <details class="audit"><summary>实验汇总、轮间标准差与环境来源</summary><div id="audit-body"></div></details>
-      <div id="capabilities" class="pills" role="group" aria-label="能力筛选"></div>
-      <div class="rollout-layout">
-        <aside class="task-sidebar" aria-label="任务列表"><label class="task-search">查找任务<input id="search" type="search" placeholder="任务名称或 run ID" autocomplete="off"></label><div class="filters"><label>结果<select id="outcome"><option value="all">全部结果</option><option>成功</option><option>失败</option><option>未发布</option><option>结果待核对</option><option>未知</option></select></label><label>场景变体<select id="variant"><option value="all">全部变体</option><option value="standard">Standard</option><option value="random">Random</option></select></label></div><p id="task-count" class="small" aria-live="polite"></p><div id="episodes" class="task-list"></div></aside>
-        <section id="detail" class="detail" aria-labelledby="detail-title"><button id="close-detail" class="close" type="button" aria-label="关闭任务详情">×</button><h2 id="detail-title">选择一个任务</h2><p id="detail-caption" class="small"></p><div id="detail-body"></div></section>
-      </div>
-    </section>
-    <section class="notes"><h2>关于结果</h2><p>每轮按任务族聚合，再对五类能力等权；多轮均值与标准差只使用完整轮次；标准差与成绩均以百分比显示，至少完成两轮后显示。不同轮次的 seed、scene 和 variant 均单独标注。本页面是研究实验记录，不代表官网榜单同协议排名。</p><p>cap20 表示每次 EEF 执行最多 20 个原生控制步，模型决策数单独记录。成功与失败取自原生终局；未发布的任务不推断运行状态。视频为原始相机记录，配置、费用与证据可在任务详情中展开。</p></section>
-  </main><footer><span>RoboDojo L3 Lab · Research results</span><span>原始视频 · 公开动作反馈 · 可追溯证据</span></footer>
-</body></html>
+<body><main><h1>RoboDojo L3 实时结果看板</h1>
+<p>正在打开自动更新的实验结果看板。</p>
+<p><a href="https://robodojo-live-results.glassy-quail-2213.chatgpt.site/">打开看板 →</a></p>
+<p>新结果通过云端数据目录更新；本仓库保留历史文件和访问入口。</p>
+</main></body></html>
