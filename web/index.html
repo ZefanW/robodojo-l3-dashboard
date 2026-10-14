@@ -5,13 +5,19 @@
   <meta name="description" content="RoboDojo L3 实验结果、任务视频与原生执行证据。">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src https:; img-src 'self'; base-uri 'none'; form-action 'none'">
   <title>RoboDojo L3 · 实验与任务</title>
-  <link rel="stylesheet" href="style.css?v=experiment-browser-v1"><script src="app.js?v=stddev-percent-20261013" defer></script>
+  <link rel="stylesheet" href="style.css?v=native-progress-20261014"><script src="app.js?v=stddev-percent-20261013" defer></script>
 </head>
 <body>
   <header><a class="brand" href="./"><span class="mark" aria-hidden="true">L3</span> RoboDojo <span>Research results</span></a><a href="https://robodojo-benchmark.com/leaderboard" target="_blank" rel="noopener noreferrer">RoboDojo 官网 ↗</a></header>
   <main>
     <section class="intro"><p class="eyebrow">EXPERIMENTS / TASKS / ROLLOUTS</p><h1>实验与任务</h1><p class="subtitle">选择实验，查看每个任务的结果、原始视频与执行记录。</p></section>
     <div class="overview"><div class="stats" aria-label="已发布结果"><div><span id="group-count">—</span><p>实验配置</p></div><div><span id="run-count">—</span><p>原生完成并发布</p></div><div><span id="control-count">—</span><p>实际控制步</p></div></div><div id="status" role="status" aria-live="polite">正在加载公开结果…</div></div>
+    <section class="execution-snapshot" aria-labelledby="execution-title">
+      <div class="section-head"><h2 id="execution-title">LOW 运行进度</h2><time class="small" datetime="2026-10-14T16:00:29.254467+08:00">核对于 2026-10-14 16:00（UTC+8）</time></div>
+      <div class="execution-summary"><div><strong>167 <span>/ 168</span></strong><p>原生评测已完成</p></div><div><strong>1</strong><p>正在运行 · R4 物体分类 <code>classify_objects</code></p></div><div><strong>158</strong><p>已公开入榜 · 另 9 条已完成，发布材料整理中</p></div></div>
+      <p class="execution-note">搭塔 <code>build_tower</code> 已结束：<b>30 / 100</b>。以下为最新 7 条原生结果预览，尚未计入下方榜单；视频与完整记录验证发布后再入榜。分数沿用原生评分，包含机械臂归位条件。</p>
+      <details><summary>查看最新完成的 7 条 LOW 结果</summary><div class="table-wrap"><table><thead><tr><th>轮次</th><th>任务</th><th>原生分数</th><th>控制步</th><th>发布状态</th></tr></thead><tbody><tr><td>R2</td><td>整理桌面 <span class="small">organize_table</span></td><td>25 / 100</td><td>892</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>井字棋 <span class="small">play_tic_tac_toe</span></td><td>50 / 100</td><td>688</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>填满蛋托 <span class="small">fill_egg_holder</span></td><td>25 / 100</td><td>608</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>整理桌面 <span class="small">organize_table</span></td><td>25 / 100</td><td>772</td><td>原生终局 · 待发布</td></tr><tr><td>R3</td><td>制作 Kong 玩具 <span class="small">make_kong</span></td><td>0 / 100</td><td>362</td><td>原生终局 · 待发布</td></tr><tr><td>R4</td><td>搭塔 <span class="small">build_tower</span></td><td>30 / 100</td><td>700</td><td>原生终局 · 待发布</td></tr><tr><td>R4</td><td>填满笔筒 <span class="small">fill_pen_holder</span></td><td>0 / 100</td><td>859</td><td>原生终局 · 待发布</td></tr></tbody></table></div></details>
+    </section>
     <section aria-labelledby="experiments-title"><div class="section-head"><h2 id="experiments-title">选择实验</h2><label class="search">查找实验 <input id="experiment-search" type="search" placeholder="名称、effort 或实验 ID" autocomplete="off"></label></div><div id="experiments" class="experiment-list"></div></section>
     <section id="workspace" hidden>
       <div class="experiment-heading"><div><p class="eyebrow">EXPERIMENT ROLLOUTS</p><h2 id="experiment-title"></h2><p id="experiment-id" class="small"></p></div><div id="experiment-metrics" class="metrics"></div></div>
