@@ -1,0 +1,25 @@
+{
+  "schema_version": "l3-file-terminal-closeout-v1",
+  "run_id": "l3-low-r7-mixed42-20261014-imitate_sorting_sequence-standard-s0-scene6",
+  "original_native_status": "infrastructure_hold",
+  "original_error": "PublicationError('Unattributed control without a model decision')",
+  "original_status_sha256": "de0ccf595a7d44e2a5b3ba73b2abf869539c5096fd03d8c48c967bf33f79bcd8",
+  "native_result_sha256": "0d4366d03be196625243688d60cdd43a116e7150f009b1d930401dd64dcbd215",
+  "trace_sha256": "bf9e5c28c9d83014ce3fe682c9ce06cef70a3a1ed3464b414fc5ed8e8fe0d14c",
+  "audit_sha256": "5c50b2fe3395c91117144c44d680772f598c1657112e8f27c7f08b005f360d91",
+  "completion_event_sha256": "ade00cf8bddfbb095247250cc792e7d87af7af76a3dd948e580d0a80484d3385",
+  "outcome": {
+    "status": "complete",
+    "native_terminal": true,
+    "score": 1.0,
+    "success": true,
+    "native_controls": 1375,
+    "model_decisions": 81
+  },
+  "non_model_observation_controls": 600,
+  "non_model_budget_stop_controls": 0,
+  "model_attributed_controls": 775,
+  "original_native_status_unchanged": true,
+  "model_calls_added": 0,
+  "simulator_starts": 0
+}

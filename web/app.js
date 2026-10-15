@@ -8,7 +8,49 @@ const standardDeviation = variance => typeof variance === "number" && Number.isF
 const points = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2)+"%" : "—";
 const known = v => v === null || v === undefined ? "unknown" : String(v);
 let ledger = {runs:[],groups:[]};
-let loading=false, lastPayload="";
+const coverage = m => m.expected == null ? String(m.completed) : m.completed+" / "+m.expected;
+const number = (n, decimals=0) => typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("en-US",{maximumFractionDigits:decimals}) : "未知";
+// Recomputed from the current catalog on every refresh, with each run counted once.
+function runCosts(ids){
+  const wanted=new Set(ids), rows=[...new Map(ledger.runs.filter(r=>wanted.has(r.run_id)).map(r=>[r.run_id,r])).values()];
+  const costs=rows.map(r=>r.costs), complete=costs.every(c=>c?.accounting==="known");
+  const sum=k=>costs.reduce((n,c)=>n+(c?.[k]||0),0);
+  const knownPart=k=>costs.reduce((n,c)=>n+(typeof c?.[k]==="number"?c[k]:(c?.attempts||[]).reduce((v,a)=>v+(typeof a[k]==="number"?a[k]:0),0)),0);
+  const input=knownPart("input_tokens"),output=knownPart("output_tokens"),cached=knownPart("cached_input_tokens");
+  return {run_count:rows.length,total_tokens:complete?input+output:null,
+    input_tokens:complete?input:null,output_tokens:complete?output:null,cached_input_tokens:complete?cached:null,
+    known_input_tokens:input,known_output_tokens:output,known_cached_input_tokens:cached,
+    known_token_lower_bound:sum("known_token_lower_bound"),
+    paid_requests:costs.every(c=>typeof c?.paid_requests==="number")?sum("paid_requests"):null,
+    unknown_usage_attempts:costs.reduce((n,c)=>n+(c?.attempts||[]).filter(a=>!a.usage_known).length,0),
+    incomplete_cost_runs:costs.filter(c=>c?.accounting!=="known").length};
+}
+const costsFor = g => runCosts(g.run_ids||[]);
+const tokenText = (c,field="total_tokens",average=false) => {
+  if(c.run_count===0)return "—";
+  const lower={total_tokens:"known_token_lower_bound",input_tokens:"known_input_tokens",output_tokens:"known_output_tokens",cached_input_tokens:"known_cached_input_tokens"};
+  const missing=c[field]==null, value=missing?c[lower[field]]:c[field];
+  const displayed=average?(missing?Math.floor(value/c.run_count*10)/10:value/c.run_count):value;
+  return (missing?"≥ ":"")+number(displayed,average?1:0);
+};
+const costNote = c => c.run_count === 0 ? "暂无已发布用量" : "付费请求 "+number(c.paid_requests)+(c.unknown_usage_attempts?" · "+number(c.unknown_usage_attempts)+" 次用量未知":c.incomplete_cost_runs?" · "+number(c.incomplete_cost_runs)+" 条账目不完整":" · 用量完整");
+function tokenLines(c,average=false){return ["输入 "+tokenText(c,"input_tokens",average),"输出 "+tokenText(c,"output_tokens",average),"合计 "+tokenText(c,"total_tokens",average)].join("\n");}
+function renderTokenSummary(g,round){
+  const host=byId("token-summary");if(!host)return;host.replaceChildren();
+  host.append(make("h3","Token 用量"),make("p","随新结果自动更新 · 只统计已发布的 run","small"));
+  const grid=make("div",undefined,"token-scopes");
+  for(const [label,scope] of [...(round?[["本轮 R"+round.round,round]]:[]),["整个实验",g]]){
+    const c=costsFor(scope),section=make("section",undefined,"token-scope");
+    section.append(make("h4",label+" · "+c.run_count+" 个已发布 run"));
+    const values=make("div",undefined,"token-values");
+    for(const [field,title] of [["input_tokens","输入"],["output_tokens","输出"],["total_tokens","合计"]]){
+      const cell=make("div");cell.append(make("span",title),make("strong",tokenText(c,field)),make("small","平均 / run "+tokenText(c,field,true)));values.append(cell);
+    }
+    section.append(values,make("p","输入中缓存 "+tokenText(c,"cached_input_tokens")+" · "+costNote(c),"small"));grid.append(section);
+  }
+  host.append(grid);
+}
+let loading=false, lastPayload="", lastEtag="";
 const configurations = new Map();
 const simulatorVersion = r => configurations.get(r.run_id)?.simulator_package_isaacsim || "unrecorded / unavailable";
 function safeLink(raw, local=false) {
@@ -22,24 +64,24 @@ function renderAudit(g){
   if(!ledger.groups.length){host.append(make("p","Harness summaries appear after native evidence is published.","small"));return;}
   {
     const card=make("article",undefined,"group");
-    card.append(make("h3",g.protocol.profile+" · "+g.model.name),
+    card.append(make("h3",experimentName(g)),
       make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+g.protocol.max_decisions+" decisions / episode","small"));
-    const multiRound=(g.rounds||[]).length>1;
+    const multiRound=(g.rounds||[]).length>1&&g.metrics.expected!=null;
     const complete=g.aggregation_status==="complete",ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
     const metrics=make("div",undefined,"metrics");
-    for(const [value,label] of [[g.metrics.completed+" / "+g.metrics.expected,"completed & published"],[pct(complete?g.metrics.score:g.metrics.observed_score),complete?"Score":multiRound?"Completed-round score":"Current score"],[pct(complete?g.metrics.success_rate:g.metrics.observed_success_rate),complete?"Success rate":multiRound?"Completed-round SR":"Current success rate"]]){
+    for(const [value,label] of [[coverage(g.metrics),"completed & published"],[pct(complete?g.metrics.score:g.metrics.observed_score),complete?"Score":multiRound?"Completed-round score":"Current score"],[pct(complete?g.metrics.success_rate:g.metrics.observed_success_rate),complete?"Success rate":multiRound?"Completed-round SR":"Current success rate"]]){
       const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
     }
     card.append(metrics);
-    const progress=make("progress");progress.max=g.metrics.expected;progress.value=g.metrics.completed;
+    const progress=make("progress");progress.hidden=g.metrics.expected==null;progress.max=g.metrics.expected||1;progress.value=g.metrics.completed;
     progress.setAttribute("aria-label",g.metrics.completed+" of "+g.metrics.expected+" episodes completed and published");card.append(progress);
-    card.append(make("p",ambiguous?"Multiple attempts overlap an episode. Scores are withheld until its result is resolved.":complete?"All selected episodes are complete.":multiRound?"The campaign score averages completed rounds equally. Partial rounds are listed below and excluded from the round mean and standard deviation.":"Current scores use completed episodes only. The final score appears at full coverage.","small"));
+    card.append(make("p",ambiguous?"Multiple attempts overlap an episode. Scores are withheld until its result is resolved.":complete?"All selected episodes are complete.":multiRound?"The campaign score averages completed rounds equally. Partial rounds are listed below and excluded from the round mean and standard deviation.":g.metrics.expected==null?"总量未设定；仅展示当前已上传样本，不推断实验完成。":"Current scores use completed episodes only. The final score appears at full coverage.","small"));
     renderRounds(card,g);
     const dimensions=make("details"),dimensionTitle=make("summary","Capability scores and coverage");dimensions.append(dimensionTitle);
     for(const [name,m]of Object.entries(g.dimensions)){
       const row=make("div",undefined,"dimension"),bar=make("div",undefined,"bar"),fill=make("span");
       fill.style.width=(typeof m.observed_score==="number"?Math.max(0,Math.min(100,m.observed_score*100)):0)+"%";bar.append(fill);
-      row.append(make("span",name),bar,make("span",pct(m.observed_score)),make("span",m.completed+"/"+m.expected));dimensions.append(row);
+      row.append(make("span",name),bar,make("span",pct(m.observed_score)),make("span",coverage(m).replaceAll(" ","")));dimensions.append(row);
     }
     card.append(dimensions);
     const environments=g.environments||[];
@@ -75,16 +117,17 @@ function renderRounds(card,g){
   const rounds=g.rounds||[],stats=g.round_statistics;
   if(!rounds.length||!stats)return;
   const section=make("section",undefined,"rounds");
-  section.append(make("h4","Rounds · "+stats.completed_rounds+" / "+stats.expected_rounds+" complete"));
+  section.append(make("h4",stats.expected_rounds==null?"按 seed / scene 展示已上传样本（总量未设定）":"Rounds · "+stats.completed_rounds+" / "+stats.expected_rounds+" complete"));
   if(g.selection_title)section.append(make("p",g.selection_title,"small"));
   if(g.preserved_unselected_run_ids?.length)section.append(make("p",g.preserved_unselected_run_ids.length+" original records are preserved in the episode ledger but are outside this round selection and excluded from its score and standard deviation.","small"));
   if(g.historical_campaign)section.append(make("p","Historical campaign: original outcomes are regrouped by the declared round selection. Reused results retain their original policy and protocol in the source breakdown.","small"));
   const table=make("table"),head=make("tr");
-  for(const label of ["Round","Configuration","Published","Score","SR"])head.append(make("th",label));table.append(head);
+  for(const label of ["轮次","场景配置","已发布","Score","SR","Tokens","平均 tokens / run","调用与缺失"])head.append(make("th",label));table.append(head);
   for(const r of rounds){
     const config=roundConfiguration(r);
-    const row=make("tr"),status=r.status==="complete"?"complete":r.status==="ambiguous_multiple_attempts"?"overlapping attempts":"partial";
-    for(const value of [r.round,config,r.metrics.completed+" / "+r.metrics.expected+" · "+status,pct(r.metrics.score),pct(r.metrics.success_rate)])row.append(make("td",value));table.append(row);
+    const row=make("tr"),status=r.status==="complete"?"complete":r.status==="ambiguous_multiple_attempts"?"overlapping attempts":r.status==="open"?"总量未设定":"partial";
+    const c=costsFor(r);
+    for(const value of [r.round,config,coverage(r.metrics)+" · "+status,pct(r.metrics.score),pct(r.metrics.success_rate),tokenLines(c),tokenLines(c,true),costNote(c)])row.append(make("td",value));table.append(row);
   }
   const wrap=make("div",undefined,"table-wrap");wrap.append(table);section.append(wrap);
   const variation=make("p",undefined,"small round-stddev");
@@ -95,9 +138,86 @@ function renderRounds(card,g){
 // Experiment membership comes from the published index, never from name matching.
 let selectedGroupId = null, selectedRound = "1", selectedCapability = "all";
 let selectedRowKey = null, selectedRowSignature = null, visibleRows = [], activeVideo = null, detailGeneration = 0;
+let taskFocus = null, showHiddenGroups = false, preferencesPersistent = true;
+const preferencesKey = "robodojo-l3.dashboard.preferences.v1";
+function readPreferences(){
+  try{
+    const raw=localStorage.getItem(preferencesKey);if(!raw)return new Map();
+    const saved=JSON.parse(raw);
+    if(saved?.version!==1||!saved.groups||typeof saved.groups!=="object"||Array.isArray(saved.groups))return new Map();
+    // Older preferences may contain aliases; shared names never read them.
+    return new Map(Object.entries(saved.groups).filter(([,value])=>value&&typeof value==="object"&&value.hidden===true)
+      .map(([id])=>[id,{hidden:true}]));
+  }catch{preferencesPersistent=false;return new Map();}
+}
+const groupPreferences = readPreferences();
+const preferenceFor = g => groupPreferences.get(g.group_id)||{hidden:false};
+const visibleGroups = () => ledger.groups.filter(g=>!preferenceFor(g).hidden);
 const episodeKey = e => JSON.stringify([e.task,e.variant,e.seed,e.scene]);
 const rowKey = row => JSON.stringify([row.round,episodeKey(row.episode)]);
-const experimentName = g => g.model.name + " · " + g.protocol.profile + " · " + g.model.thinking_effort;
+const originalExperimentName = g => g.model.name + " · " + g.protocol.profile + " · " + g.model.thinking_effort;
+// Maintainer-owned catalog contract: experiment_names maps exact group_id to a
+// shared display string. It never changes membership or original protocol IDs.
+function experimentName(g){
+  const names=ledger.experiment_names;
+  const value=names&&typeof names==="object"&&!Array.isArray(names)&&Object.prototype.hasOwnProperty.call(names,g.group_id)?names[g.group_id]:null;
+  return typeof value==="string"&&value.trim()?value.trim():originalExperimentName(g);
+}
+function experimentOptionName(g,groups){
+  const name=experimentName(g),duplicates=groups.filter(item=>experimentName(item)===name);
+  if(duplicates.length<2)return name;
+  const suffix=duplicates.filter(item=>item.selection_id===g.selection_id).length>1?g.selection_id+" · "+g.group_id:g.selection_id;
+  return name+" · "+suffix;
+}
+const groupLabel = g => (ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
+function updateGroupPreference(g,change){
+  const next={hidden:typeof change.hidden==="boolean"?change.hidden:preferenceFor(g).hidden};
+  if(next.hidden)groupPreferences.set(g.group_id,next);else groupPreferences.delete(g.group_id);
+  try{localStorage.setItem(preferencesKey,JSON.stringify({version:1,groups:Object.fromEntries(groupPreferences)}));preferencesPersistent=true;}
+  catch{preferencesPersistent=false;}
+  ensureVisibleSelection();renderExperiments();renderExperiment();
+}
+function ensureVisibleSelection(){
+  if(selectedGroup()&&!preferenceFor(selectedGroup()).hidden)return;
+  const next=[...visibleGroups()].sort((a,b)=>b.metrics.completed-a.metrics.completed)[0];
+  clearDetail();selectedGroupId=next?.group_id||null;
+  if(next&&selectedRound!=="all"&&!next.rounds.some(r=>String(r.round)===selectedRound))selectedRound=String(next.rounds[0]?.round||1);
+}
+function renderGroupSettings(card,g){
+  const settings=make("details",undefined,"group-settings"),summary=make("summary","显示设置");
+  const hideLabel=make("label",undefined,"hide-group"),hide=make("input");hide.type="checkbox";hide.checked=preferenceFor(g).hidden;
+  hide.addEventListener("change",()=>updateGroupPreference(g,{hidden:hide.checked}));hideLabel.append(hide,make("span","暂时隐藏本组"));
+  settings.append(summary,hideLabel);card.append(settings);
+}
+function uploadExample(g){
+  const members=new Set(g.run_ids||[]);
+  const source=ledger.runs.find(r=>members.has(r.run_id)&&r.selection?.id&&r.protocol?.id&&r.protocol?.profile);
+  if(!source)return null;
+  const matches=r=>r.selection?.id===source.selection.id&&r.protocol?.id===source.protocol.id&&r.protocol?.profile===source.protocol.profile;
+  const ids=new Set(ledger.runs.filter(r=>members.has(r.run_id)&&matches(r)).map(r=>r.run_id));
+  return {selection:{id:source.selection.id},protocol:{id:source.protocol.id,profile:source.protocol.profile},
+    rounds:(g.rounds||[]).filter(r=>(r.run_ids||[]).some(id=>ids.has(id))).map(r=>r.round)};
+}
+function uploadFields(example){
+  return {"selection.id":example.selection.id,"protocol.id":example.protocol.id,"protocol.profile":example.protocol.profile};
+}
+function renderUploadFooter(card,g){
+  const example=uploadExample(g),footer=make("div",undefined,"upload-fields");
+  footer.append(make("b","本组上传字段"));
+  if(!example){footer.append(make("span","暂无已接入的上传字段","small"));card.append(footer);return;}
+  if(example.rounds.length)footer.append(make("span","这组编号对应 "+example.rounds.map(r=>"R"+r).join(" / "),"small"));
+  for(const [key,value] of Object.entries(uploadFields(example))){
+    const row=make("div");row.append(make("span",key),make("code",value));footer.append(row);
+  }
+  const copy=make("button","复制这三个字段","copy-upload");copy.type="button";
+  const status=make("span","","copy-status");status.setAttribute("role","status");
+  copy.addEventListener("click",async()=>{
+    const raw=JSON.stringify(uploadFields(example),null,2);
+    try{await navigator.clipboard.writeText(raw);status.textContent="已复制";}
+    catch{const text=make("textarea");text.value=raw;text.readOnly=true;footer.append(text);text.focus();text.select();status.textContent="已选中，请复制";}
+  });
+  footer.append(copy,status);card.append(footer);
+}
 const selectedGroup = () => ledger.groups.find(g=>g.group_id===selectedGroupId);
 const outcomeLabel = row => row.runs.length>1?"结果待核对":!row.runs.length?"未发布":row.runs[0].outcome.success===true?"成功":row.runs[0].outcome.success===false?"失败":"未知";
 const outcomeClass = row => row.runs.length!==1?"pending":row.runs[0].outcome.success===true?"success":row.runs[0].outcome.success===false?"failure":"pending";
@@ -106,9 +226,10 @@ function experimentRows(g, roundNumber){
   const overlay=(ledger.round_selections||[]).find(s=>s.id===g.selection_id);
   let expected=[];
   if(!overlay && members.length){
-    expected=members[0].selection?.expected_episodes||[];
+    expected=members.find(r=>r.selection?.expected_episodes)?.selection.expected_episodes||[];
+    if(g.metrics?.expected===null)expected=[...new Map(members.map(r=>[episodeKey(r.episode),r.episode])).values()];
     const signature=items=>JSON.stringify(items.map(e=>[episodeKey(e),e.capability]).sort());
-    if(members.some(r=>signature(r.selection?.expected_episodes||[])!==signature(expected)))throw new Error("Inconsistent experiment selection");
+    if(g.metrics?.expected!==null&&members.some(r=>r.selection?.expected_episodes&&signature(r.selection.expected_episodes)!==signature(expected)))throw new Error("Inconsistent experiment selection");
   }
   return (g.rounds||[]).filter(r=>roundNumber==="all"||String(r.round)===String(roundNumber)).flatMap(round=>{
     const wanted=overlay ? (overlay.rounds.find(r=>r.round===round.round)?.expected_episodes||[]) : expected.filter(e=>e.seed===round.seed&&e.scene===round.scene);
@@ -119,13 +240,34 @@ function experimentRows(g, roundNumber){
 function releaseVideo(){if(activeVideo){activeVideo.pause();activeVideo.removeAttribute("src");activeVideo.load();activeVideo=null;}}
 function clearDetail(){detailGeneration++;releaseVideo();selectedRowKey=null;selectedRowSignature=null;byId("detail-body").replaceChildren();byId("detail-title").textContent="选择一个任务";byId("detail-caption").textContent="查看原生结果、三路视频与动作反馈。";}
 function selectExperiment(g){
-  if(selectedGroupId===g.group_id)return;
-  clearDetail();selectedGroupId=g.group_id;selectedRound=String(g.rounds?.[0]?.round||1);selectedCapability="all";
-  byId("search").value="";byId("variant").value="all";byId("outcome").value="all";
+  if(selectedGroupId===g.group_id||preferenceFor(g).hidden)return;
+  clearDetail();selectedGroupId=g.group_id;
+  if(selectedRound!=="all"&&!g.rounds.some(r=>String(r.round)===selectedRound))selectedRound=String(g.rounds[0]?.round||1);
   renderExperiments();renderExperiment();
 }
+function selectRound(value){
+  if(selectedRound===value)return;
+  clearDetail();selectedRound=value;renderExperiment();
+}
+function matchingTask(rows,focus){
+  const same=rows.filter(row=>row.episode.task===focus.episode.task&&row.episode.variant===focus.episode.variant);
+  return same.find(row=>episodeKey(row.episode)===episodeKey(focus.episode)&&row.round===focus.round)
+    ||same.find(row=>episodeKey(row.episode)===episodeKey(focus.episode))
+    ||same.find(row=>row.episode.seed===focus.episode.seed&&row.round===focus.round)
+    ||same.find(row=>row.episode.seed===focus.episode.seed)||same.find(row=>row.round===focus.round)||same[0];
+}
+function renderDetailNavigation(g){
+  const groups=byId("detail-experiment"),rounds=byId("detail-round");groups.replaceChildren();rounds.replaceChildren();
+  const available=visibleGroups();
+  for(const item of available){const option=make("option",experimentOptionName(item,available));option.value=item.group_id;groups.append(option);}
+  groups.value=g.group_id;
+  for(const [value,label] of [["all","全部轮次"],...g.rounds.map(r=>[String(r.round),"R"+r.round+" · "+coverage(r.metrics)])]){
+    const option=make("option",label);option.value=value;rounds.append(option);
+  }
+  rounds.value=selectedRound;
+}
 function experimentSummary(g){
-  const rounds=g.rounds||[], completeRounds=rounds.filter(r=>r.status==="complete"), multiple=rounds.length>1;
+  const rounds=g.rounds||[], completeRounds=rounds.filter(r=>r.status==="complete"), multiple=rounds.length>1&&g.metrics.expected!=null;
   const ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
   const statistics=g.round_statistics||{}, finite=v=>typeof v==="number"&&Number.isFinite(v);
   const score=ambiguous?null:multiple?statistics.score_mean:g.aggregation_status==="complete"?g.metrics.score:g.metrics.observed_score;
@@ -136,7 +278,7 @@ function experimentSummary(g){
     const dimension=g.dimensions?.[name]||{};
     const values=completeRounds.map(r=>r.dimensions?.[name]?.score);
     const value=ambiguous?null:multiple?(n&&values.every(finite)?values.reduce((a,b)=>a+b,0)/n:null):dimension.observed_score;
-    return {name,score:value,completed:dimension.completed||0,expected:dimension.expected||0};
+    return {name,score:value,completed:dimension.completed||0,expected:dimension.expected};
   });
   return {score,sr,stddev,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?"完整第一轮":"当前已发布部分，非最终成绩"};
 }
@@ -145,45 +287,57 @@ function renderExperimentSummary(button,g){
   for(const [text,label] of [[pct(value.score),"Score"],[points(value.stddev),"Score 标准差"]]){
     const item=make("span",undefined,"card-stat");item.append(make("b",text),make("span",label));stats.append(item);
   }
+  const c=costsFor(g),tokens=make("span",undefined,"card-tokens");
+  for(const [label,value] of [["平均输入 / run",tokenText(c,"input_tokens",true)],["平均输出 / run",tokenText(c,"output_tokens",true)],["平均合计 / run",tokenText(c,"total_tokens",true)]]){const row=make("span");row.append(make("span",label),make("b",value));tokens.append(row);}
+  button.append(tokens,make("span",costNote(c),"card-stat-note"));
   button.append(stats,make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 轮间波动","card-stat-note"),make("span",value.basis,"card-stat-note"));
   const divisions=make("span",undefined,"card-capabilities");
   const names={Generalization:"泛化",Precision:"精细操作","Long-Horizon":"长程",Memory:"记忆",Open:"开放"};
   for(const item of value.capabilities){
     const row=make("span",undefined,"card-capability");row.title=item.name;
-    row.append(make("span",names[item.name]),make("b",pct(item.score)),make("span",item.completed+"/"+item.expected));divisions.append(row);
+    row.append(make("span",names[item.name]),make("b",pct(item.score)),make("span",coverage(item).replaceAll(" ","")));divisions.append(row);
   }
   button.append(divisions);
 }
 function renderExperiments(){
   const host=byId("experiments"),q=byId("experiment-search").value.trim().toLowerCase();host.replaceChildren();
+  const hidden=ledger.groups.filter(g=>preferenceFor(g).hidden).length,toggle=byId("show-hidden");
+  toggle.textContent=(showHiddenGroups?"收起隐藏组":"显示隐藏组")+" ("+hidden+")";toggle.disabled=!hidden;toggle.setAttribute("aria-pressed",String(showHiddenGroups));
+  byId("restore-hidden").hidden=!hidden;
+  byId("preferences-status").textContent=preferencesPersistent?"实验名称由维护者统一设置；隐藏设置仅在本浏览器保存。":"实验名称由维护者统一设置；本浏览器无法持久保存隐藏设置，本次页面内仍有效。";
   const ordered=[...ledger.groups].sort((a,b)=>["low","medium","high","xhigh"].indexOf(a.model.thinking_effort)-["low","medium","high","xhigh"].indexOf(b.model.thinking_effort));
-  for(const g of ordered.filter(g=>[experimentName(g),g.selection_id,g.protocol.id,g.selection_title].join(" ").toLowerCase().includes(q))){
-    const button=make("button",undefined,"experiment-card"+(g.group_id===selectedGroupId?" selected":""));button.type="button";
+  for(const g of ordered.filter(g=>(showHiddenGroups||!preferenceFor(g).hidden)&&[experimentName(g),originalExperimentName(g),g.selection_id,g.protocol.id,g.selection_title].join(" ").toLowerCase().includes(q))){
+    const hidden=preferenceFor(g).hidden,card=make("article",undefined,"experiment-card"+(g.group_id===selectedGroupId?" selected":"")+(hidden?" hidden-preview":""));
+    const button=make("button",undefined,"experiment-select");button.type="button";
+    button.disabled=hidden;
     button.setAttribute("aria-pressed",String(g.group_id===selectedGroupId));button.setAttribute("aria-label",experimentName(g));
-    button.append(make("span",g.model.thinking_effort.toUpperCase(),"effort"),make("strong",g.protocol.profile),make("span",g.model.name,"small"),make("span",g.metrics.completed+" / "+g.metrics.expected+" 已发布 · "+(g.rounds||[]).length+" 轮","card-coverage"));
-    renderExperimentSummary(button,g);button.append(make("span",g.selection_id,"experiment-id"));
-    button.addEventListener("click",()=>selectExperiment(g));host.append(button);
+    button.append(make("span",g.model.thinking_effort.toUpperCase()+(hidden?" · 已隐藏":""),"effort"),make("span","实验名称","card-label"),make("strong",experimentName(g)),make("span",g.model.name+" · 原始 profile："+g.protocol.profile,"small"),make("span",coverage(g.metrics)+" 已发布 · "+(g.rounds||[]).length+" 轮","card-coverage"));
+    renderExperimentSummary(button,g);button.append(make("span",groupLabel(g)+" · "+g.selection_id,"experiment-id"));
+    button.addEventListener("click",()=>selectExperiment(g));card.append(button);renderGroupSettings(card,g);renderUploadFooter(card,g);host.append(card);
   }
-  if(!host.children.length)host.append(make("p","没有匹配的实验。试试 medium、cap20 或实验 ID。","small"));
+  if(!host.children.length)host.append(make("p",hidden===ledger.groups.length&&hidden?"所有实验已隐藏。可显示隐藏组，或恢复全部隐藏组。":"没有匹配的实验。试试名称、medium、cap20 或实验 ID。","small"));
 }
 function renderExperiment(){
   const g=selectedGroup();byId("workspace").hidden=!g;if(!g)return;
   byId("experiment-title").textContent=experimentName(g);
-  byId("experiment-id").textContent=g.selection_id;
+  byId("experiment-id").textContent="原始 profile："+g.protocol.profile+" · "+groupLabel(g)+"："+g.selection_id;
+  renderDetailNavigation(g);
   const rounds=byId("round-tabs");rounds.replaceChildren();
-  for(const [value,label] of [["all","全部轮次"],...(g.rounds||[]).map(r=>[String(r.round),"R"+r.round+" · "+r.metrics.completed+"/"+r.metrics.expected])]){
+  for(const [value,label] of [["all","全部轮次"],...(g.rounds||[]).map(r=>[String(r.round),"R"+r.round+" · "+coverage(r.metrics)])]){
     if(value==="all"&&g.rounds.length===1)continue;
     const b=make("button",label,"pill"+(selectedRound===value?" active":""));b.type="button";b.setAttribute("aria-pressed",String(selectedRound===value));
-    b.addEventListener("click",()=>{clearDetail();selectedRound=value;renderExperiment();});rounds.append(b);
+    b.addEventListener("click",()=>selectRound(value));rounds.append(b);
   }
   const round=g.rounds.find(r=>String(r.round)===selectedRound),m=round?round.metrics:g.metrics;
   const isComplete=round?round.status==="complete":g.aggregation_status==="complete";
   const metrics=byId("experiment-metrics");metrics.replaceChildren();
-  for(const [value,label] of [[m.completed+" / "+m.expected,"已发布"],[pct(m.score),"Score"],[pct(m.success_rate),"成功率 SR"]]){
+  for(const [value,label] of [[coverage(m),"已发布"],[pct(m.score),"Score"],[pct(m.success_rate),"成功率 SR"]]){
     const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
   }
+  renderTokenSummary(g,round);
+  if(byId("cost-note"))byId("cost-note").textContent="平均 / run = 本范围 token 总量 ÷ 已发布 run 数，含失败和重试；缓存已包含在输入中。≥ 表示用量有缺失、这里只显示已知下界。运行中或尚未上传的开销不在此表。";
   byId("round-config").textContent=round?roundConfiguration(round):"各轮的 seed、scene 和 variant 按原始轮次定义分别列出。";
-  byId("coverage-note").textContent=isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
+  byId("coverage-note").textContent=m.expected==null?"总量未设定，按已上传样本展示；不声明完整轮或最终成绩。":isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
   if(!isComplete && typeof m.observed_score==="number")byId("coverage-note").textContent+=" 已发布部分 Score "+pct(m.observed_score)+" / SR "+pct(m.observed_success_rate)+"。";
   renderAudit(g);renderCapabilities();renderRuns();
 }
@@ -194,7 +348,7 @@ function renderCapabilities(){
   if(!names.includes(selectedCapability))selectedCapability="all";
   for(const name of names){const count=name==="all"?rows.length:rows.filter(r=>r.episode.capability===name).length;
     const b=make("button",(name==="all"?"全部能力":name)+" · "+count,"pill"+(selectedCapability===name?" active":""));b.type="button";b.setAttribute("aria-pressed",String(name===selectedCapability));
-    b.addEventListener("click",()=>{selectedCapability=name;renderCapabilities();renderRuns();});host.append(b);
+    b.addEventListener("click",()=>{selectedCapability=name;taskFocus=null;renderCapabilities();renderRuns();});host.append(b);
   }
 }
 function renderRuns(){
@@ -204,8 +358,19 @@ function renderRuns(){
   visibleRows=rows.filter(row=>(selectedCapability==="all"||row.episode.capability===selectedCapability)&&(variant==="all"||row.episode.variant===variant)&&(outcome==="all"||outcomeLabel(row)===outcome)&&[row.episode.task,...row.runs.map(r=>r.run_id)].join(" ").toLowerCase().includes(q));
   byId("task-count").textContent=visibleRows.length+" / "+rows.length+" 条任务结果";
   const retained=visibleRows.find(row=>rowKey(row)===selectedRowKey);
-  if(!retained){clearDetail();if(visibleRows.length)showRow(visibleRows[0]);}
-  else if(JSON.stringify(retained.runs.map(r=>r.run_id))!==selectedRowSignature)showRow(retained);
+  if(!retained){
+    clearDetail();const next=taskFocus?matchingTask(visibleRows,taskFocus):visibleRows[0];
+    if(next)showRow(next);
+    else if(taskFocus){
+      byId("detail-title").textContent=taskFocus.episode.task;
+      byId("detail-caption").textContent=taskFocus.episode.variant+" · 保留任务选择";
+      byId("detail-body").append(make("p","当前实验、轮次或筛选中没有此任务及变体。可切换轮次、调整筛选，或从左侧另选任务。","unpublished"));
+    }
+  }
+  else{
+    taskFocus={episode:{...retained.episode},round:retained.round};
+    if(JSON.stringify(retained.runs.map(r=>r.run_id))!==selectedRowSignature)showRow(retained);
+  }
   for(const row of visibleRows){
     const b=make("button",undefined,"task-item"+(rowKey(row)===selectedRowKey?" selected":""));b.type="button";b.setAttribute("aria-pressed",String(rowKey(row)===selectedRowKey));
     const title=make("span",row.episode.task,"task-name"),result=make("span",outcomeLabel(row),"badge "+outcomeClass(row));
@@ -217,7 +382,7 @@ function renderRuns(){
   if(!visibleRows.length)host.append(make("p","没有匹配的任务，请调整筛选条件。","empty"));
 }
 function showRow(row){
-  clearDetail();selectedRowKey=rowKey(row);selectedRowSignature=JSON.stringify(row.runs.map(r=>r.run_id));const host=byId("detail-body");
+  clearDetail();taskFocus={episode:{...row.episode},round:row.round};selectedRowKey=rowKey(row);selectedRowSignature=JSON.stringify(row.runs.map(r=>r.run_id));const host=byId("detail-body");
   byId("detail-title").textContent=row.episode.task;
   byId("detail-caption").textContent="R"+row.round+" · "+row.episode.capability+" · "+row.episode.variant+" · seed "+row.episode.seed+" / scene "+row.episode.scene;
   if(!row.runs.length){host.append(make("div","此任务尚未发布结果。原生结果和证据完成登记后会显示在这里。","unpublished"));return;}
@@ -263,18 +428,25 @@ function showRun(r){
   for(const a of r.artifacts){const item=make("li");item.append(link(a.kind+" · "+a.path,a.site_path||a.url,Boolean(a.site_path)),make("span"," · "+a.bytes+" bytes · SHA "+a.sha256.slice(0,12)+"…","small"));list.append(item);}evidence.append(list);
   if(r.limitations?.length){evidence.append(make("h3","Limitations"));for(const item of r.limitations)evidence.append(make("p",item,"small"));}host.append(evidence);
 }
-function showLoadedStatus(data){byId("status").textContent=data.runs.some(r=>r.evidence_level==="native_terminal"&&r.outcome.status==="complete")?"已加载公开结果 · 每 60 秒刷新，播放与筛选保持不变。":"Fresh ledger · No real benchmark scores have been published.";}
+function showLoadedStatus(data){byId("status").textContent="结果目录 · 每 60 秒检查更新 · 刚刚检查";const pending=data.pending_review||[],queue=data.upload_queue||[];byId("upload-status").hidden=!pending.length&&!queue.length;byId("upload-summary").textContent="上传状态 · "+queue.length+" 条处理中 · "+pending.length+" 条需补充材料";const items=byId("upload-items");items.replaceChildren();for(const row of pending){const reason=row.reason.includes("journal recovery")?"恢复请求的回执尚未被导出器完整收录，请补充正式证据包。":row.reason.includes("Builtin demo")?"含 600 步内置演示，缺少模型归属和原视频完成凭据。":row.reason;items.append(make("p",row.task+"："+reason,"small"));}for(const row of queue)items.append(make("p",row.id.slice(0,12)+" · "+({queued:"已收到，等待校验",receiving:"正在接收",validating:"正在校验",needs_check:"需要核对"}[row.status]||row.status)+(row.reason?" · "+row.reason:""),"small"));}
 async function load(){if(loading)return;loading=true;try{
-  const response=await fetch("data/index.json",{cache:"no-store",credentials:"omit",redirect:"error"});if(!response.ok)throw new Error();const payload=await response.text();if(payload===lastPayload){showLoadedStatus(ledger);return;}
+  const response=await fetch("data/index.json",{cache:"no-store",credentials:"omit",redirect:"error",headers:lastEtag?{"If-None-Match":lastEtag}:{}});if(response.status===304){showLoadedStatus(ledger);return;}if(!response.ok)throw new Error();const payload=await response.text();lastEtag=response.headers.get("ETag")||"";if(payload===lastPayload){showLoadedStatus(ledger);return;}
   const data=JSON.parse(payload);if(!["l3-index-v1","l3-index-v2"].includes(data.schema_version)||!Array.isArray(data.runs)||!Array.isArray(data.groups))throw new Error();
-  const nextConfigurations=new Map();await Promise.all(data.runs.map(async r=>{const config=r.artifacts.find(a=>a.kind==="config"),url=config&&safeLink(config.site_path,true);if(!url)return;try{const response=await fetch(url,{credentials:"omit",redirect:"error"});if(!response.ok)return;const content=await response.json();if(content.schema_version!=="l3-public-config-v1"||!Array.isArray(content.parameters))return;nextConfigurations.set(r.run_id,Object.fromEntries(content.parameters.map(p=>[p.name,p.value])));}catch{}}));
+  const nextConfigurations=new Map(data.runs.map(r=>[r.run_id,r.configuration_parameters||{}]));
   ledger=data;configurations.clear();for(const [key,value] of nextConfigurations)configurations.set(key,value);
   const complete=data.runs.filter(r=>r.evidence_level==="native_terminal"&&r.outcome.status==="complete");byId("run-count").textContent=complete.length;byId("group-count").textContent=data.groups.length;byId("control-count").textContent=complete.reduce((n,r)=>n+r.outcome.native_controls,0).toLocaleString();showLoadedStatus(data);
-  if(!selectedGroup()){selectedGroupId=[...data.groups].sort((a,b)=>b.metrics.completed-a.metrics.completed)[0]?.group_id||null;selectedRound=String(selectedGroup()?.rounds?.[0]?.round||1);clearDetail();}
+  ensureVisibleSelection();
   renderExperiments();renderExperiment();lastPayload=payload;
 }catch{byId("status").textContent="The result index could not be loaded. Existing evidence is retained; automatic refresh will retry.";}finally{loading=false;}}
-for(const id of ["search","variant","outcome"])byId(id).addEventListener(id==="search"?"input":"change",renderRuns);
+for(const id of ["search","variant","outcome"])byId(id).addEventListener(id==="search"?"input":"change",()=>{taskFocus=null;renderRuns();});
 byId("experiment-search").addEventListener("input",renderExperiments);
-byId("close-detail").addEventListener("click",()=>{clearDetail();});
+byId("detail-experiment").addEventListener("change",event=>{const g=visibleGroups().find(g=>g.group_id===event.target.value);if(g)selectExperiment(g);});
+byId("detail-round").addEventListener("change",event=>selectRound(event.target.value));
+byId("show-hidden").addEventListener("click",()=>{showHiddenGroups=!showHiddenGroups;renderExperiments();});
+byId("restore-hidden").addEventListener("click",()=>{
+  for(const g of ledger.groups)groupPreferences.delete(g.group_id);
+  const first=ledger.groups[0];if(first)updateGroupPreference(first,{});
+});
+byId("close-detail").addEventListener("click",()=>{taskFocus=null;clearDetail();});
 load();setInterval(()=>{if(!document.hidden)load();},60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)load();});
