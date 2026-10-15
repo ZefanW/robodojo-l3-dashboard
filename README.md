@@ -36,3 +36,10 @@ projection and original evidence hashes before every Pages deployment.
 control limits, accounting and aggregation.
 
 Original dashboard code is MIT; referenced upstream assets retain their licenses.
+# Public data API
+
+The dashboard includes a public read-only JSON API. List experiments and results,
+retrieve complete structured evidence, or compare one task across runs without
+a cloud-drive SDK or login. [API documentation](docs/API.md) ·
+[Online API](https://zefanw.github.io/robodojo-l3-dashboard/api/) ·
+[Python client](examples/api_client.py).
