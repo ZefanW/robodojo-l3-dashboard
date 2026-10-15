@@ -2,7 +2,7 @@ name: Deploy validated results dashboard
 on:
   push:
     branches: [main]
-    paths: ['web/**', 'scripts/validate_static_dashboard.py', '.github/workflows/pages.yml']
+    paths: ['web/**', 'scripts/**', 'docs/API.md', 'examples/api_client.py', '.github/workflows/pages.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,6 +21,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify static artifact paths and mirrored bytes
         run: python3 scripts/validate_static_dashboard.py web
+      - name: Verify API contracts
+        run: python3 -m unittest discover -s scripts -p 'test_api.py' -v
+      - name: Build complete public data API from this snapshot
+        run: python3 scripts/build_api.py web
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
