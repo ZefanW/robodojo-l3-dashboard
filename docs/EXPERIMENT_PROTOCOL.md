@@ -1,5 +1,51 @@
 # Experiment selection and round statistics
 
+## Fixed first-round and P50_111 scores
+
+All experiment tabs use the same [frozen evaluation plan](../web/evaluation-plans.json).
+These scores are computed independently of the campaign's overall completion
+and of the round currently selected in the viewer. New accepted data triggers
+the usual publication pipeline; each Pages build recomputes both evaluations.
+This is automatic publication of existing outcomes, not permission to run
+additional experiments.
+
+- **First round (42):** seed 0; the 30 non-Generalization tasks use standard
+  scene 0, and the 12 Generalization tasks use random scene 0.
+- **P50_111:** the frozen 23 selected task families each contribute four
+  samples; the other 19 contribute their first-round sample. Selected tasks
+  among the 30 use standard scenes 0–3. Selected tasks among the 12 use
+  random/standard scenes 0–1, in the order random0, standard0, random1,
+  standard1. These are exactly their first four rounds above, not any four
+  completed scenes. The first round is a subset of P50_111.
+
+The 23-task selection was based on the theoretical highest non-full score
+being at most 50/100, and at least one of LOW/MEDIUM observing both full and
+non-full scores in the eight-round development data. This task list is now
+fixed: new results do not reselect tasks or change their repetition counts.
+
+For either evaluation, average the selected samples **within each task**, then
+average tasks within each capability, then average the five capabilities
+equally. Repeating a task four times does not quadruple its aggregate weight.
+SR uses the same hierarchy with the original success flags. Scores and SR in
+the API remain on the 0–1 scale; the dashboard displays percentages.
+
+Coverage is checked against exact task/variant/seed/scene tuples from each
+group's selected `run_ids`. Later scenes, different seeds, other experiment
+groups and preserved-unselected records cannot fill gaps. Multiple selected
+attempts for a required tuple block its score; neither the best nor the latest
+attempt is silently selected. Missing or ambiguous coverage yields `null`, not
+a partial mean or zero. Extra records outside the plan have no effect.
+
+The two existing, explicitly user-accepted supplementary imitate results keep
+their disclosed evidence status when included: they are not promoted to native
+validated results. Evaluation output lists the supplementary run IDs and
+evidence basis. Other incomplete or unaccepted evidence cannot fill a slot.
+
+This frozen devset is an analysis/evaluation convention, not a claim of the
+upstream benchmark leaderboard's identical protocol.
+
+## Historical round selection
+
 A round contains one episode for each of the 42 task families: 30 families
 without a random variant and 12 Generalization families with both variants.
 The selected seed is 0. A scene is the zero-based ordinal after numerically

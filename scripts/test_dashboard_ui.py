@@ -25,10 +25,10 @@ const nodes=new Map(), intervals=[], listeners=new Map();
 const get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
 let payload=JSON.stringify({schema_version:"l3-index-v1",runs:[],groups:[]});
 let fail=false, calls=0;
-const context=vm.createContext({URL, console,
+const context=vm.createContext({URL, console, TextDecoder, crypto:{subtle:{digest:async(_,bytes)=>require("crypto").createHash("sha256").update(Buffer.from(bytes)).digest()}},
  document:{getElementById:get,createElement:()=>new Element(),hidden:false,
    addEventListener:(name,fn)=>listeners.set(name,fn)},
- fetch:async()=>{calls++;if(fail)throw new Error("Synthetic offline disconnect");return {ok:true,headers:{get:()=>""},text:async()=>payload};},
+ fetch:async url=>{if(url!=="data/index.json")return {ok:false};calls++;if(fail)throw new Error("Synthetic offline disconnect");return {ok:true,headers:{get:()=>""},arrayBuffer:async()=>Uint8Array.from(Buffer.from(payload)).buffer};},
  setInterval:(fn,ms)=>intervals.push({fn,ms})});
 vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),context);
 (async()=>{
@@ -84,13 +84,17 @@ const memory=()=>{const data=new Map();return {getItem:k=>data.get(k)||null,setI
 async function boot(storage=memory()){
  const nodes=new Map(),get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
  get("variant").value="all";get("outcome").value="all";
- let payload=JSON.stringify({schema_version:"l3-index-v2",runs:[],groups:[]});
- const context=vm.createContext({URL,console,localStorage:storage,
+ let payload=JSON.stringify({schema_version:"l3-index-v2",runs:[],groups:[]}),evaluationPayload=null,evaluationFail=false,indexStatus=200,evaluationFetches=0;
+ const context=vm.createContext({URL,console,TextDecoder,crypto:{subtle:{digest:async(_,bytes)=>require("crypto").createHash("sha256").update(Buffer.from(bytes)).digest()}},localStorage:storage,
   document:{getElementById:get,createElement:tag=>new Element(tag),hidden:false,addEventListener(){}},
-  fetch:async()=>({ok:true,headers:{get:()=>""},text:async()=>payload}),setInterval(){}});
+  fetch:async url=>{
+   if(url==="api/v1/evaluations.json"){evaluationFetches++;if(evaluationFail)throw new Error("API unavailable");return {ok:!!evaluationPayload,json:async()=>JSON.parse(JSON.stringify(evaluationPayload))};}
+   return {ok:true,status:indexStatus,headers:{get:()=>"fixture-etag"},arrayBuffer:async()=>Uint8Array.from(Buffer.from(payload)).buffer};
+  },setInterval(){}});
  const evaluate=code=>vm.runInContext(code,context);
  evaluate(source);await new Promise(resolve=>setImmediate(resolve));
- return {get,context,evaluate,storage,setPayload:value=>{payload=JSON.stringify(value);},
+ return {get,context,evaluate,storage,setPayload:value=>{payload=JSON.stringify(value);},setRawPayload:value=>{payload=value;},
+  setEvaluations:value=>{evaluationPayload=value;},setEvaluationFail:value=>{evaluationFail=value;},setIndexStatus:value=>{indexStatus=value;},evaluationFetches:()=>evaluationFetches,
   install:fixture=>{context.fixture=fixture;evaluate('ledger=fixture;ensureVisibleSelection();renderExperiments();renderExperiment()');}};
 }
 const record=(id,task,variant="standard",seed=0,scene=0,round=1)=>({run_id:id,round,
@@ -266,6 +270,53 @@ function fixture(groups){
  ui.get("restore-hidden").emit("click");assert.equal(ui.get("detail-round").value,"all");
 ''')
 
+    def test_fixed_scores_require_complete_exact_coverage_and_survive_round_filters(self):
+        self.run_ui_check(r'''
+ const ui=await boot(),data=fixture([["a",[record("a1","task")]], ["b",[record("b1","task")]]]);
+ const score=(id,n,value)=>({plan_id:id,status:"complete",completed:n,expected:n,score:value,success_rate:.25,missing_cases:[],conflicts:[]});
+ const doc={schema_version:"robodojo-api-v1",snapshot_id:require("crypto").createHash("sha256").update(JSON.stringify(data)).digest("hex"),experiments:[
+  {experiment_id:"a",evaluation_scores:{first_round:score("first_round",42,.625),P50_111:{...score("P50_111",111,.99),status:"incomplete",completed:80,missing_cases:[{task:"missing_task",variant:"random",seed:0,scene:1}]}}},
+  {experiment_id:"b",evaluation_scores:{first_round:score("first_round",42,.2),P50_111:score("P50_111",111,.3)}}]};
+ ui.setPayload(data);ui.setEvaluations(doc);await ui.evaluate("load()");
+ let displayed=text(ui.get("fixed-evaluation-summary"));
+ assert(displayed.includes("62.5%"));assert(displayed.includes("80 / 111"));assert(!displayed.includes("99.0%"));assert(displayed.includes("missing_task"));
+ assert(text(ui.get("experiments")).includes("62.5%"));assert(text(ui.get("experiments")).includes("30.0%"));
+ ui.get("search").value="task";ui.get("search").emit("input");ui.get("detail-round").value="all";ui.get("detail-round").emit("change");
+ assert(text(ui.get("fixed-evaluation-summary")).includes("62.5%"));
+ doc.experiments[0].evaluation_scores.P50_111=score("P50_111",111,.375);ui.setEvaluations(doc);
+ const before=ui.evaluationFetches();await ui.evaluate("load()");
+ assert.equal(ui.evaluationFetches(),before+1,"Unchanged index must retry the evaluation API");
+ displayed=text(ui.get("fixed-evaluation-summary"));assert(displayed.includes("37.5%"));assert(displayed.includes("111 / 111"));
+ assert.equal(ui.get("search").value,"task");assert.equal(ui.get("detail-round").value,"all");
+ const retainedNode=ui.get("fixed-evaluation-summary").children[0];await ui.evaluate("load()");
+ assert.strictEqual(ui.get("fixed-evaluation-summary").children[0],retainedNode,"Unchanged API and index must not rebuild the view");
+ // A misleading complete status must not publish a score with a missing case or conflict.
+ doc.experiments[0].evaluation_scores.P50_111.missing_cases=[{task:"not_ready",variant:"standard",seed:0,scene:0}];
+ doc.experiments[0].evaluation_scores.first_round.conflicts=[{case:{task:"overlap",variant:"standard",seed:0,scene:0},run_ids:["one","two"]}];
+ await ui.evaluate("load()");displayed=text(ui.get("fixed-evaluation-summary"));assert(!displayed.includes("37.5%"));assert(!displayed.includes("62.5%"));assert(displayed.includes("overlap"));assert(displayed.includes("结果待核对"));
+''')
+
+    def test_fixed_scores_retry_after_snapshot_mismatch_http_304_and_api_failure(self):
+        self.run_ui_check(r'''
+ const ui=await boot(),data=fixture([["a",[record("a1","task")]]]);
+ const result={status:"complete",completed:42,expected:42,score:.625,success_rate:.2,missing_cases:[],conflicts:[]};
+ const doc={schema_version:"robodojo-api-v1",snapshot_id:"wrong-snapshot",experiments:[{experiment_id:"a",evaluation_scores:{first_round:result}}]};
+ ui.setPayload(data);ui.setEvaluations(doc);await ui.evaluate("load()");
+ assert(text(ui.get("fixed-evaluation-summary")).includes("固定评测成绩待同步"));assert(!text(ui.get("fixed-evaluation-summary")).includes("62.5%"));
+ doc.snapshot_id=require("crypto").createHash("sha256").update(JSON.stringify(data)).digest("hex");ui.setIndexStatus(304);await ui.evaluate("load()");
+ assert(text(ui.get("fixed-evaluation-summary")).includes("62.5%"),"A 304 index response must still retry scores");
+ ui.setEvaluationFail(true);await ui.evaluate("load()");assert(!text(ui.get("fixed-evaluation-summary")).includes("62.5%"));assert(text(ui.get("fixed-evaluation-summary")).includes("固定评测成绩待同步"));
+ ui.setEvaluationFail(false);await ui.evaluate("load()");assert(text(ui.get("fixed-evaluation-summary")).includes("62.5%"));
+ // API scores for a newer index cannot attach to a retained catalog.
+ ui.setIndexStatus(200);const newer={...data,experiment_names:{a:"Renamed"}};ui.setPayload(newer);await ui.evaluate("load()");
+ assert.equal(ui.get("experiment-title").textContent,"Renamed");assert(!text(ui.get("fixed-evaluation-summary")).includes("62.5%"));
+ // UTF-8 BOM changes raw bytes even though TextDecoder yields the same JSON text.
+ doc.snapshot_id=require("crypto").createHash("sha256").update(JSON.stringify(newer)).digest("hex");
+ ui.setRawPayload("\ufeff"+JSON.stringify(newer));await ui.evaluate("load()");assert(!text(ui.get("fixed-evaluation-summary")).includes("62.5%"));
+ doc.snapshot_id=require("crypto").createHash("sha256").update("\ufeff"+JSON.stringify(newer)).digest("hex");
+ await ui.evaluate("load()");assert(text(ui.get("fixed-evaluation-summary")).includes("62.5%"));
+''')
+
 
 class DashboardExperimentRowsTests(unittest.TestCase):
     """Exercise public expected-membership joins without a browser or network."""
@@ -287,9 +338,9 @@ class Element {
 const nodes=new Map();
 const get=id=>{if(!nodes.has(id))nodes.set(id,new Element());return nodes.get(id);};
 let fetches=0;
-const context=vm.createContext({URL, console,
+const context=vm.createContext({URL, console, TextDecoder, crypto:{subtle:{digest:async(_,bytes)=>require("crypto").createHash("sha256").update(Buffer.from(bytes)).digest()}},
  document:{getElementById:get,createElement:()=>new Element(),hidden:false,addEventListener(){}},
- fetch:async()=>{fetches++;return {ok:true,headers:{get:()=>""},text:async()=>JSON.stringify({schema_version:"l3-index-v2",runs:[],groups:[],round_selections:[]})};},
+ fetch:async url=>{fetches++;if(url!=="data/index.json")return {ok:false};return {ok:true,headers:{get:()=>""},arrayBuffer:async()=>Uint8Array.from(Buffer.from(JSON.stringify({schema_version:"l3-index-v2",runs:[],groups:[],round_selections:[]}))).buffer};},
  setInterval(){}});
 vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),context);
 const ep=(task,variant="standard",scene=0,capability="Open")=>({task,variant,seed:0,scene,capability});

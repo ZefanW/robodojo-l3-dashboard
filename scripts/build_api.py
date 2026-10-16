@@ -14,6 +14,7 @@ import shutil
 from urllib.parse import urlparse
 
 from validate_static_dashboard import canonical, digest, read, require, safe_path, validate
+from evaluation_scores import evaluate_groups
 
 DEFAULT_SITE = 'https://zefanw.github.io/robodojo-l3-dashboard/'
 VERSION = 'robodojo-api-v1'
@@ -43,6 +44,15 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
     require(len(by_id) == len(rows), 'Duplicate result ID')
     groups = source['groups']
     require(len({identifier(g['group_id']) for g in groups}) == len(groups), 'Duplicate experiment ID')
+    # The frozen plan ships with the builder, so alternate output roots and
+    # isolated API fixtures use exactly the same agreed evaluation membership.
+    plans_file = root/'evaluation-plans.json'
+    if not plans_file.exists():
+        plans_file = Path(__file__).resolve().parents[1]/'web/evaluation-plans.json'
+    plans_raw = plans_file.read_bytes()
+    plans_document = json.loads(plans_raw)
+    evaluation_scores = evaluate_groups(source, plans_document)
+    evaluation_plan_sha256 = digest(plans_raw)
     memberships = collections.defaultdict(list)
     experiment_rows = {}
     names = source.get('experiment_names', {})
@@ -84,6 +94,7 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
         experiments.append(dict(experiment_id=gid, selection_id=group['selection_id'],
             name=names.get(gid, group.get('selection_title', group['selection_id'])),
             model=group['model'], protocol=group['protocol'], metrics=group.get('metrics'),
+            evaluation_scores=evaluation_scores[gid],
             result_count=len(experiment_rows[gid]), selected_count=len(group['run_ids']),
             round_count=len(group.get('rounds', [])),
             url=link('experiments/'+gid+'.json'),
@@ -107,12 +118,18 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
 
     try:
         emit('experiments.json', envelope(count=len(experiments), experiments=experiments))
+        emit('evaluations.json', envelope(evaluation_plan_sha256=evaluation_plan_sha256,
+            plan_version=plans_document['plan_version'], score_scale='0..1',
+            aggregation=plans_document['aggregation'], plans=plans_document['plans'],
+            experiments=[dict(experiment_id=e['experiment_id'], selection_id=e['selection_id'],
+                              name=e['name'], evaluation_scores=e['evaluation_scores']) for e in experiments]))
         emit('results.json', envelope(count=len(summaries), results=list(summaries.values())))
         for group in groups:
             gid = group['group_id']
             emit('experiments/'+gid+'.json', envelope(experiment_id=gid,
                 name=names.get(gid, group.get('selection_title', group['selection_id'])),
-                experiment=group, results_url=link('experiments/'+gid+'/results.json')))
+                experiment=group, evaluation_scores=evaluation_scores[gid],
+                results_url=link('experiments/'+gid+'/results.json')))
             emit('experiments/'+gid+'/results.json', envelope(experiment_id=gid,
                 selection_id=group['selection_id'], count=len(experiment_rows[gid]),
                 results=[summaries[rid] for rid in experiment_rows[gid]]))
@@ -154,7 +171,8 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
             note='Publication status only; this endpoint does not report live simulator/controller health.'))
         emit('index.json', envelope(site_url=site_url, api_url=api_url,
             counts=dict(experiments=len(groups), results=len(rows), tasks=len(tasks)),
-            links={name:link(name+'.json') for name in ['experiments','results','tasks','round-selections','status','openapi']},
+            links={name:link(name+'.json') for name in ['experiments','evaluations','results','tasks','round-selections','status','openapi']},
+            evaluation_plan_sha256=evaluation_plan_sha256,
             documentation_url=site_url+'api/',
             score_scale='0..1', methods=['GET','HEAD'],
             query_filtering=False, authentication='none',
@@ -171,6 +189,7 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
             require({(a['kind'],a['path'],a['sha256']) for a in doc['evidence']} == expected,
                     'Incomplete structured evidence')
         require((root/'data/index.json').read_bytes() == source_raw, 'Snapshot changed during build')
+        require(plans_file.read_bytes() == plans_raw, 'Evaluation plan changed during build')
         if target.exists():
             shutil.rmtree(target)
         staging.rename(target)
@@ -188,6 +207,7 @@ def openapi(api_url):
     specs = [
         ('/index.json','Get API version, snapshot and endpoint links',None),
         ('/experiments.json','List experiment groups and summary metrics',None),
+        ('/evaluations.json','Get frozen first-round and P50_111 scores, exact coverage and selected result IDs',None),
         ('/experiments/{experiment_id}.json','Get original experiment summary and rounds','experiment_id'),
         ('/experiments/{experiment_id}/results.json','List selected and preserved results in an experiment','experiment_id'),
         ('/results.json','List all published result summaries',None),

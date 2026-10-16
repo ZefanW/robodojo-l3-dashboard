@@ -37,6 +37,13 @@ class StaticMirrorTests(unittest.TestCase):
     def test_abandoned_api_path_rejected(self):
         self.index['runs'][0]['manifest_path']='/api/manifest/example';self.save()
         with self.assertRaisesRegex(ValueError,'Manifest path'):validate(self.root)
+    def test_static_v1_allowed_but_retired_routes_blocked(self):
+        app = self.root/'app.js'
+        app.write_text('fetch("/api/v1/evaluations.json")')
+        validate(self.root)
+        for text in ['fetch("/api/catalog")', 'fetch("https://old.chatgpt.site/api/v1/evaluations.json")']:
+            app.write_text(text)
+            with self.assertRaisesRegex(ValueError,'abandoned site APIs'):validate(self.root)
     def test_unknown_supplement_cannot_bypass_manifest(self):
         self.index['runs'][0].update(evidence_level='user_accepted_supplementary',manifest_path=None,formal_episode_result=False,strict_public_validation_passed=False);self.save()
         with self.assertRaisesRegex(ValueError,'Unapproved supplementary'):validate(self.root)

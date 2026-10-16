@@ -18,6 +18,13 @@ dashboard repository. GitHub Actions then publishes the snapshot. New uploads
 wait while the Mac is offline; published pages remain available. Experiment code
 is maintained separately in `ZefanW/robodojo-l3-lab`.
 
+Every experiment also reports two fixed evaluations: the first 42-case round and
+P50_111. The [frozen sample plan](web/evaluation-plans.json) selects exact task,
+variant, seed and scene identities, independently of upload order. Every Pages
+build recomputes coverage and publishes a score only when the required samples
+are complete and unambiguous. The existing publication service supplies new
+accepted results; no extra agent monitor or experiment is needed.
+
 Experiment display names are shared maintainer settings, while hiding experiments
 is a preference saved only in the current browser. Switching groups preserves the
 task search; the case viewer also provides nearby group and run/scene selectors.

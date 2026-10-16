@@ -23,6 +23,8 @@ jobs:
         run: python3 scripts/validate_static_dashboard.py web
       - name: Verify API contracts
         run: python3 -m unittest discover -s scripts -p 'test_api.py' -v
+      - name: Verify fixed evaluation selection and scoring
+        run: python3 -m unittest discover -s scripts -p 'test_evaluation_scores.py' -v
       - name: Build complete public data API from this snapshot
         run: python3 scripts/build_api.py web
       - uses: actions/configure-pages@v5

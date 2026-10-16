@@ -1,0 +1,1099 @@
+{
+  "schema_version": "robodojo-evaluation-plans-v1",
+  "plan_version": "2026-10-16",
+  "score_scale": "0..1",
+  "aggregation": "task_mean_then_capability_mean_then_equal_five_capability_mean",
+  "source_proposal_sha256": "24a15606dbbc136d1296b641b731aa40cdec2f52b2b9ca60d48ac5fb349a392f",
+  "source_data_sha256": "8be07c71c233915bfb2c9fd6cb379f82087c22d3dd3ec77e031ed6afcd1de4f6",
+  "membership_policy": "Only selected group.run_ids; exact task, variant, seed and scene; no later-scene substitutions, cross-group pooling or score-based retry selection.",
+  "plans": {
+    "first_round": {
+      "plan_id": "first_round",
+      "label": "首轮42",
+      "expected": 42,
+      "task_count": 42,
+      "cases": [
+        {
+          "task": "align_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "arrange_largest_number",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "build_tower",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "classify_objects",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "classify_objects_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "cover_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "deposit_coin",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "fasten_screws",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "fill_egg_holder",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "fill_pen_holder",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "fold_clothes",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "general_pickup",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "hang_mugs",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "imitate_sorting_sequence",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "insert_key",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "insert_tubes",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "make_kong",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "make_toast",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "match_and_pick_from_conveyor",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "organize_table",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "pack_objects_into_box",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "pick_from_conveyor_by_image",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "play_Xylophone",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "play_stacking_toy",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "play_tic_tac_toe",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "plug_in_charger",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "pour_balls_into_vase",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "pour_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "pour_liquid_into_cup",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "press_by_number",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "push_T",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "put_bottles_into_dustbin",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "solve_equation",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "sort_nesting_dolls_by_size",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "stack_blocks",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "stack_blocks_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "stack_bowls",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "store_laptop_and_headphones",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "store_tools_in_toolbox",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "swap_T",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "swap_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "sweep_blocks",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        }
+      ]
+    },
+    "P50_111": {
+      "plan_id": "P50_111",
+      "label": "P50_111",
+      "expected": 111,
+      "task_count": 42,
+      "selection_rule": "相同≤50资格，23个合格任务全部测4次，其余1次。排名只作解释，不截断、不使用预算优化器。",
+      "cases": [
+        {
+          "task": "align_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "align_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Open"
+        },
+        {
+          "task": "align_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Open"
+        },
+        {
+          "task": "align_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Open"
+        },
+        {
+          "task": "arrange_largest_number",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "arrange_largest_number",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "arrange_largest_number",
+          "variant": "random",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "arrange_largest_number",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "build_tower",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "classify_objects",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "classify_objects",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "classify_objects",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "classify_objects",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "classify_objects_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "classify_objects_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Open"
+        },
+        {
+          "task": "classify_objects_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Open"
+        },
+        {
+          "task": "classify_objects_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Open"
+        },
+        {
+          "task": "cover_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "cover_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Memory"
+        },
+        {
+          "task": "cover_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Memory"
+        },
+        {
+          "task": "cover_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Memory"
+        },
+        {
+          "task": "deposit_coin",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "fasten_screws",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "fasten_screws",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Precision"
+        },
+        {
+          "task": "fasten_screws",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Precision"
+        },
+        {
+          "task": "fasten_screws",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Precision"
+        },
+        {
+          "task": "fill_egg_holder",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "fill_pen_holder",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "fold_clothes",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "fold_clothes",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "fold_clothes",
+          "variant": "random",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "fold_clothes",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "general_pickup",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "general_pickup",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Open"
+        },
+        {
+          "task": "general_pickup",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Open"
+        },
+        {
+          "task": "general_pickup",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Open"
+        },
+        {
+          "task": "hang_mugs",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "imitate_sorting_sequence",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "imitate_sorting_sequence",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Memory"
+        },
+        {
+          "task": "imitate_sorting_sequence",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Memory"
+        },
+        {
+          "task": "imitate_sorting_sequence",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Memory"
+        },
+        {
+          "task": "insert_key",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "insert_tubes",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "make_kong",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "make_toast",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "match_and_pick_from_conveyor",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "match_and_pick_from_conveyor",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Memory"
+        },
+        {
+          "task": "match_and_pick_from_conveyor",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Memory"
+        },
+        {
+          "task": "match_and_pick_from_conveyor",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Memory"
+        },
+        {
+          "task": "organize_table",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "pack_objects_into_box",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "pack_objects_into_box",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "pack_objects_into_box",
+          "variant": "random",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "pack_objects_into_box",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "pick_from_conveyor_by_image",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "pick_from_conveyor_by_image",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Open"
+        },
+        {
+          "task": "pick_from_conveyor_by_image",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Open"
+        },
+        {
+          "task": "pick_from_conveyor_by_image",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Open"
+        },
+        {
+          "task": "play_Xylophone",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "play_Xylophone",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Precision"
+        },
+        {
+          "task": "play_Xylophone",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Precision"
+        },
+        {
+          "task": "play_Xylophone",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Precision"
+        },
+        {
+          "task": "play_stacking_toy",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "play_tic_tac_toe",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "plug_in_charger",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "plug_in_charger",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Precision"
+        },
+        {
+          "task": "plug_in_charger",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Precision"
+        },
+        {
+          "task": "plug_in_charger",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Precision"
+        },
+        {
+          "task": "pour_balls_into_vase",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Precision"
+        },
+        {
+          "task": "pour_balls_into_vase",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Precision"
+        },
+        {
+          "task": "pour_balls_into_vase",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Precision"
+        },
+        {
+          "task": "pour_balls_into_vase",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Precision"
+        },
+        {
+          "task": "pour_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "pour_liquid_into_cup",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "press_by_number",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "press_by_number",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Memory"
+        },
+        {
+          "task": "press_by_number",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Memory"
+        },
+        {
+          "task": "press_by_number",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Memory"
+        },
+        {
+          "task": "push_T",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "push_T",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "push_T",
+          "variant": "random",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "push_T",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "put_bottles_into_dustbin",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "put_bottles_into_dustbin",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "put_bottles_into_dustbin",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "put_bottles_into_dustbin",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Long-Horizon"
+        },
+        {
+          "task": "solve_equation",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "solve_equation",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Open"
+        },
+        {
+          "task": "solve_equation",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Open"
+        },
+        {
+          "task": "solve_equation",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Open"
+        },
+        {
+          "task": "sort_nesting_dolls_by_size",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "sort_nesting_dolls_by_size",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "sort_nesting_dolls_by_size",
+          "variant": "random",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "sort_nesting_dolls_by_size",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "stack_blocks",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "stack_blocks_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "stack_blocks_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Open"
+        },
+        {
+          "task": "stack_blocks_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Open"
+        },
+        {
+          "task": "stack_blocks_by_language",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Open"
+        },
+        {
+          "task": "stack_bowls",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "stack_bowls",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "stack_bowls",
+          "variant": "random",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "stack_bowls",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Generalization"
+        },
+        {
+          "task": "store_laptop_and_headphones",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        },
+        {
+          "task": "store_tools_in_toolbox",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Open"
+        },
+        {
+          "task": "swap_T",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "swap_T",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1,
+          "capability": "Memory"
+        },
+        {
+          "task": "swap_T",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 2,
+          "capability": "Memory"
+        },
+        {
+          "task": "swap_T",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 3,
+          "capability": "Memory"
+        },
+        {
+          "task": "swap_blocks",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Memory"
+        },
+        {
+          "task": "sweep_blocks",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0,
+          "capability": "Generalization"
+        }
+      ]
+    }
+  }
+}

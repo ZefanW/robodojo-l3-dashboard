@@ -104,7 +104,10 @@ def validate(root):
         require(not path.is_symlink(), 'Symlinks are not publishable')
     for name in ('index.html', 'app.js', 'style.css'):
         body = (root/name).read_text()
-        require('chatgpt.site' not in body and '/api/' not in body, 'Frontend still depends on abandoned site APIs')
+        # /api/v1/ is this repository's read-only Pages artifact. Other /api/
+        # routes belonged to the retired dynamic site and remain disallowed.
+        require('chatgpt.site' not in body and '/api/' not in body.replace('/api/v1/', '/static-v1/'),
+                'Frontend still depends on abandoned site APIs')
     require('http-equiv="refresh"' not in (root/'index.html').read_text(), 'Entry still redirects')
     return dict(records=len(seen), native_records=native, supplementary_records=special,
                 mirrored_json_files=len(mirrors), mirrored_json_bytes=mirror_bytes, video_downloads=0,

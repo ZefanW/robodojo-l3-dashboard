@@ -50,7 +50,65 @@ function renderTokenSummary(g,round){
   }
   host.append(grid);
 }
-let loading=false, lastPayload="", lastEtag="";
+let loading=false, lastPayload="", lastEtag="", lastSnapshotId="";
+let fixedEvaluationState="pending", fixedEvaluations=new Map();
+const fixedPlans=[["first_round","首轮",42],["P50_111","P50_111",111]];
+const fixedResult=(g,id)=>fixedEvaluationState==="ready"?fixedEvaluations.get(g.group_id)?.[id]:null;
+function fixedResultComplete(result,expected){
+  return result?.status==="complete"&&result.completed===expected&&result.expected===expected
+    &&typeof result.score==="number"&&Number.isFinite(result.score)&&result.score>=0&&result.score<=1
+    &&Array.isArray(result.missing_cases)&&result.missing_cases.length===0
+    &&Array.isArray(result.conflicts)&&result.conflicts.length===0;
+}
+function fixedResultStatus(result,expected){
+  if(!result)return "固定评测成绩待同步";
+  if(fixedResultComplete(result,expected))return "完整 · "+expected+" / "+expected;
+  const count=Number.isInteger(result.completed)&&result.completed>=0?result.completed:0;
+  return count+" / "+expected+" · "+(result.conflicts?.length?"结果待核对":"尚未齐全");
+}
+function renderFixedScores(host,g,compact=false){
+  const grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
+  for(const [id,label,expected] of fixedPlans){
+    const result=fixedResult(g,id),complete=fixedResultComplete(result,expected);
+    const cell=make(compact?"span":"section",undefined,"fixed-score"+(complete?" complete":""));
+    cell.append(make("span",label+" Score","fixed-score-label"),make("b",complete?pct(result.score):"—","fixed-score-value"),make("span",fixedResultStatus(result,expected),"fixed-score-status"));
+    grid.append(cell);
+  }
+  host.append(grid);
+}
+const fixedCaseLabel=c=>c.task+" · "+c.variant+" · seed "+c.seed+" / scene "+c.scene;
+function renderFixedEvaluationSummary(g){
+  const host=byId("fixed-evaluation-summary");if(!host)return;host.replaceChildren();
+  host.append(make("h3","固定评测成绩"),make("p","按固定场景顺序统计，样本齐全后自动发布；不随下方轮次筛选改变。","small"));
+  renderFixedScores(host,g);
+  const details=make("details",undefined,"fixed-score-details");details.append(make("summary","统计规则与待补结果"));
+  details.append(make("p","先对每个任务的样本取均值，再在能力内对任务取均值，最后对五类能力等权平均。首轮为 42 个任务；P50_111 为 23 个任务各 4 次、其余 19 个任务各 1 次。","small"),
+    make("p","首轮：30 个普通任务使用 scene0；12 个泛化任务使用 random scene0。需 4 次的普通任务使用 scene0–3，泛化任务使用 random / standard 的 scene0–1（与前 4 轮一致）。只计入本实验的指定样本，不用较晚场景补位，也不选取最高分。","small"));
+  for(const [id,label,expected] of fixedPlans){
+    const result=fixedResult(g,id),section=make("section");section.append(make("h4",label+" · "+fixedResultStatus(result,expected)));
+    if(result){
+      if(fixedResultComplete(result,expected))section.append(make("p","Score "+pct(result.score)+" · SR "+pct(result.success_rate),"small"));
+      if(result.evidence_basis==="includes_user_accepted_supplementary")section.append(make("p","包含维护者已接受的补充材料；原始证据标记保持不变。","small"));
+      const missing=result.missing_cases||[],conflicts=result.conflicts||[];
+      if(missing.length){const list=make("ul");for(const item of missing)list.append(make("li",fixedCaseLabel(item)));section.append(make("p","缺少 "+missing.length+" 个指定样本","small"),list);}
+      if(conflicts.length){const list=make("ul");for(const item of conflicts)list.append(make("li",fixedCaseLabel(item.case)+" · "+(item.run_ids||[]).join(" / ")));section.append(make("p","以下样本需核对，暂不发布本项成绩","small"),list);}
+    }
+    details.append(section);
+  }
+  host.append(details);
+}
+async function refreshFixedEvaluations(snapshotId){
+  const previous=JSON.stringify([fixedEvaluationState,[...fixedEvaluations]]);
+  fixedEvaluationState="pending";fixedEvaluations=new Map();
+  try{
+    const response=await fetch("api/v1/evaluations.json",{cache:"no-cache",credentials:"omit",redirect:"error"});
+    if(!response.ok)throw new Error();const data=await response.json();
+    if(data.schema_version!=="robodojo-api-v1"||!snapshotId||data.snapshot_id!==snapshotId||!Array.isArray(data.experiments))throw new Error();
+    const ids=data.experiments.map(e=>e.experiment_id);if(new Set(ids).size!==ids.length)throw new Error();
+    fixedEvaluations=new Map(data.experiments.map(e=>[e.experiment_id,e.evaluation_scores]));fixedEvaluationState="ready";
+  }catch{/* A later refresh retries even when the index has not changed. */}
+  return previous!==JSON.stringify([fixedEvaluationState,[...fixedEvaluations]]);
+}
 const configurations = new Map();
 const simulatorVersion = r => configurations.get(r.run_id)?.simulator_package_isaacsim || "unrecorded / unavailable";
 function safeLink(raw, local=false) {
@@ -283,8 +341,9 @@ function experimentSummary(g){
   return {score,sr,stddev,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?"完整第一轮":"当前已发布部分，非最终成绩"};
 }
 function renderExperimentSummary(button,g){
+  renderFixedScores(button,g,true);
   const value=experimentSummary(g),stats=make("span",undefined,"card-stats");
-  for(const [text,label] of [[pct(value.score),"Score"],[points(value.stddev),"Score 标准差"]]){
+  for(const [text,label] of [[pct(value.score),"已发布轮次汇总 Score"],[points(value.stddev),"Score 标准差"]]){
     const item=make("span",undefined,"card-stat");item.append(make("b",text),make("span",label));stats.append(item);
   }
   const c=costsFor(g),tokens=make("span",undefined,"card-tokens");
@@ -321,7 +380,7 @@ function renderExperiment(){
   const g=selectedGroup();byId("workspace").hidden=!g;if(!g)return;
   byId("experiment-title").textContent=experimentName(g);
   byId("experiment-id").textContent="原始 profile："+g.protocol.profile+" · "+groupLabel(g)+"："+g.selection_id;
-  renderDetailNavigation(g);
+  renderDetailNavigation(g);renderFixedEvaluationSummary(g);
   const rounds=byId("round-tabs");rounds.replaceChildren();
   for(const [value,label] of [["all","全部轮次"],...(g.rounds||[]).map(r=>[String(r.round),"R"+r.round+" · "+coverage(r.metrics)])]){
     if(value==="all"&&g.rounds.length===1)continue;
@@ -331,7 +390,7 @@ function renderExperiment(){
   const round=g.rounds.find(r=>String(r.round)===selectedRound),m=round?round.metrics:g.metrics;
   const isComplete=round?round.status==="complete":g.aggregation_status==="complete";
   const metrics=byId("experiment-metrics");metrics.replaceChildren();
-  for(const [value,label] of [[coverage(m),"已发布"],[pct(m.score),"Score"],[pct(m.success_rate),"成功率 SR"]]){
+  for(const [value,label] of [[coverage(m),"当前范围已发布"],[pct(m.score),round?"本轮 Score":"所有轮次 Score"],[pct(m.success_rate),"当前范围 SR"]]){
     const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
   }
   renderTokenSummary(g,round);
@@ -430,14 +489,34 @@ function showRun(r){
 }
 function showLoadedStatus(data){byId("status").textContent="结果目录 · 每 60 秒检查更新 · 刚刚检查";const pending=data.pending_review||[],queue=data.upload_queue||[];byId("upload-status").hidden=!pending.length&&!queue.length;byId("upload-summary").textContent="上传状态 · "+queue.length+" 条处理中 · "+pending.length+" 条需补充材料";const items=byId("upload-items");items.replaceChildren();for(const row of pending){const reason=row.reason.includes("journal recovery")?"恢复请求的回执尚未被导出器完整收录，请补充正式证据包。":row.reason.includes("Builtin demo")?"含 600 步内置演示，缺少模型归属和原视频完成凭据。":row.reason;items.append(make("p",row.task+"："+reason,"small"));}for(const row of queue)items.append(make("p",row.id.slice(0,12)+" · "+({queued:"已收到，等待校验",receiving:"正在接收",validating:"正在校验",needs_check:"需要核对"}[row.status]||row.status)+(row.reason?" · "+row.reason:""),"small"));}
 async function load(){if(loading)return;loading=true;try{
-  const response=await fetch("data/index.json",{cache:"no-cache",credentials:"omit",redirect:"error",headers:lastEtag?{"If-None-Match":lastEtag}:{}});if(response.status===304){showLoadedStatus(ledger);return;}if(!response.ok)throw new Error();const payload=await response.text();lastEtag=response.headers.get("ETag")||"";if(payload===lastPayload){showLoadedStatus(ledger);return;}
-  const data=JSON.parse(payload);if(!["l3-index-v1","l3-index-v2"].includes(data.schema_version)||!Array.isArray(data.runs)||!Array.isArray(data.groups))throw new Error();
-  const nextConfigurations=new Map(data.runs.map(r=>[r.run_id,r.configuration_parameters||{}]));
-  ledger=data;configurations.clear();for(const [key,value] of nextConfigurations)configurations.set(key,value);
-  const complete=data.runs.filter(r=>r.evidence_level==="native_terminal"&&r.outcome.status==="complete");byId("run-count").textContent=complete.length;byId("group-count").textContent=data.groups.length;byId("control-count").textContent=complete.reduce((n,r)=>n+r.outcome.native_controls,0).toLocaleString();showLoadedStatus(data);
-  ensureVisibleSelection();
-  renderExperiments();renderExperiment();lastPayload=payload;
-}catch{byId("status").textContent="The result index could not be loaded. Existing evidence is retained; automatic refresh will retry.";}finally{loading=false;}}
+  let indexChanged=false;
+  const response=await fetch("data/index.json",{cache:"no-cache",credentials:"omit",redirect:"error",headers:lastEtag?{"If-None-Match":lastEtag}:{}});
+  if(response.status!==304){
+    if(!response.ok)throw new Error();
+    // Hash exactly the response bytes, not JSON reserialization. This prevents
+    // a stale API deployment from being paired with a newer result catalog.
+    const bytes=await response.arrayBuffer(),payload=new TextDecoder().decode(bytes);
+    const digest=await crypto.subtle.digest("SHA-256",bytes);
+    const snapshotId=Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,"0")).join("");
+    if(snapshotId!==lastSnapshotId){
+      const data=JSON.parse(payload);if(!["l3-index-v1","l3-index-v2"].includes(data.schema_version)||!Array.isArray(data.runs)||!Array.isArray(data.groups))throw new Error();
+      lastSnapshotId=snapshotId;indexChanged=true;
+      ledger=data;configurations.clear();for(const r of data.runs)configurations.set(r.run_id,r.configuration_parameters||{});
+      lastPayload=payload;
+      fixedEvaluationState="pending";fixedEvaluations=new Map();
+    }
+    lastEtag=response.headers.get("ETag")||"";
+  }else if(!lastPayload)throw new Error();
+  const complete=ledger.runs.filter(r=>r.evidence_level==="native_terminal"&&r.outcome.status==="complete");
+  byId("run-count").textContent=complete.length;byId("group-count").textContent=ledger.groups.length;byId("control-count").textContent=complete.reduce((n,r)=>n+r.outcome.native_controls,0).toLocaleString();
+  // This fetch deliberately occurs on unchanged payloads and HTTP 304 too.
+  const scoresChanged=await refreshFixedEvaluations(lastSnapshotId);showLoadedStatus(ledger);
+  if(indexChanged||scoresChanged){ensureVisibleSelection();renderExperiments();renderExperiment();}
+}catch{
+  fixedEvaluationState="pending";fixedEvaluations=new Map();
+  renderExperiments();renderExperiment();
+  byId("status").textContent="The result index could not be loaded. Existing evidence is retained; automatic refresh will retry.";
+}finally{loading=false;}}
 for(const id of ["search","variant","outcome"])byId(id).addEventListener(id==="search"?"input":"change",()=>{taskFocus=null;renderRuns();});
 byId("experiment-search").addEventListener("input",renderExperiments);
 byId("detail-experiment").addEventListener("change",event=>{const g=visibleGroups().find(g=>g.group_id===event.target.value);if(g)selectExperiment(g);});
