@@ -123,6 +123,18 @@ function fixture(groups){
         result = subprocess.run([node, "-e", script, str(source)], capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_merged_upload_fields_prefer_primary_source_without_rewriting_originals(self):
+        self.run_ui_check(r'''
+ const ui=await boot(),data=fixture([["main",[record("pilot","task_a"),record("main_run","task_b")]]]);
+ data.runs[0].selection.id="pilot4";data.runs[0].protocol.id="pilot4";
+ data.runs[1].protocol.id="main";const original=JSON.stringify(data);ui.install(data);
+ const example=ui.evaluate('uploadExample(ledger.groups[0])');
+ assert.equal(example.selection.id,"main");assert.equal(example.protocol.id,"main");
+ assert.equal(JSON.stringify(data),original);
+ data.groups[0].selection_id="display-only-overlay";ui.install(data);
+ assert.equal(ui.evaluate('uploadExample(ledger.groups[0]).selection.id'),"pilot4");
+''')
+
     def test_shared_names_replace_legacy_aliases_across_cards_details_and_search(self):
         self.run_ui_check(r'''
  const storage=memory();storage.setItem("robodojo-l3.dashboard.preferences.v1",JSON.stringify({version:1,groups:{a:{alias:"Old local name"}}}));

@@ -249,7 +249,8 @@ function renderGroupSettings(card,g){
 }
 function uploadExample(g){
   const members=new Set(g.run_ids||[]);
-  const source=ledger.runs.find(r=>members.has(r.run_id)&&r.selection?.id&&r.protocol?.id&&r.protocol?.profile);
+  const candidates=ledger.runs.filter(r=>members.has(r.run_id)&&r.selection?.id&&r.protocol?.id&&r.protocol?.profile);
+  const source=candidates.find(r=>r.selection.id===g.selection_id)||candidates[0];
   if(!source)return null;
   const matches=r=>r.selection?.id===source.selection.id&&r.protocol?.id===source.protocol.id&&r.protocol?.profile===source.protocol.profile;
   const ids=new Set(ledger.runs.filter(r=>members.has(r.run_id)&&matches(r)).map(r=>r.run_id));
