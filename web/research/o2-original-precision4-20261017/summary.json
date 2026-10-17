@@ -1,0 +1,51 @@
+{
+  "selection_id": "l3-o2-precision4-20261017-v1",
+  "protocol_profile": "persistent-cap20-o2",
+  "model": "gpt-6-astra",
+  "effort": "medium",
+  "observation_count": 237,
+  "character_measure": "Python len of text. Images, history, initial recipe and fixed system instructions are excluded.",
+  "original_statistics": {
+    "baseline_chars": {
+      "n": 237,
+      "mean": 965.5527426160338,
+      "median": 935,
+      "min": 843,
+      "max": 1295
+    },
+    "old_o1_block_chars": {
+      "n": 237,
+      "mean": 4694.210970464135,
+      "median": 4736,
+      "min": 4419,
+      "max": 4908
+    },
+    "old_o2_block_chars": {
+      "n": 237,
+      "mean": 37697.22362869198,
+      "median": 38065,
+      "min": 28737,
+      "max": 58746
+    },
+    "old_o2_total_chars": {
+      "n": 237,
+      "mean": 43356.987341772154,
+      "median": 43797,
+      "min": 34204,
+      "max": 64393
+    }
+  },
+  "example": {
+    "run_id": "l3-o2-precision4-20261017-v1-plug_in_charger-standard-s0-scene0",
+    "decision_index": 0,
+    "latest_observation_chars": 34207,
+    "system_chars": 13724,
+    "initial_recipe_chars": 839
+  },
+  "privacy": "Only original model-visible input text and three observation images. No responses, reasoning, private paths or credentials.",
+  "files": {
+    "system-prompt.txt": "532252207154effc89fa9b8a1d2a5cc1f060caac3b5cd73acfa14f388a373d61",
+    "initial-task-recipe.txt": "19798d58d77572eddad7c94665d1f94da7f1c6b3657ccc3075cb41eb4e114ea2",
+    "latest-user-observation.txt": "7ca85d03ab8d1211aaead4b024c10ef15fadf2337906db5803fc6f8115879c2e"
+  }
+}
