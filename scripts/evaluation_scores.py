@@ -10,6 +10,9 @@ import math
 CASE_FIELDS = ('task', 'variant', 'seed', 'scene')
 CAPABILITY_COUNTS = {'Generalization': 12, 'Long-Horizon': 8, 'Memory': 6,
                      'Open': 8, 'Precision': 8}
+PLAN_ALLOCATIONS = {'first_round': (42, {1: 42}),
+                    'spiky2_65': (65, {1: 19, 2: 23}),
+                    'P50_111': (111, {1: 19, 4: 23})}
 
 
 def case_key(episode):
@@ -21,10 +24,11 @@ def validate_plans(document):
     if document.get('schema_version') != 'robodojo-evaluation-plans-v1':
         raise ValueError('Unknown fixed evaluation manifest')
     plans = document['plans']
-    if set(plans) != {'first_round', 'P50_111'}:
-        raise ValueError('Expected first_round and P50_111')
+    if set(plans) != set(PLAN_ALLOCATIONS):
+        raise ValueError('Expected first_round, spiky2_65 and P50_111')
     task_capabilities = {}
-    for pid, expected in (('first_round', 42), ('P50_111', 111)):
+    repeated_tasks = {}
+    for pid, (expected, allocation) in PLAN_ALLOCATIONS.items():
         plan = plans[pid]
         cases = plan['cases']
         if plan['plan_id'] != pid or plan['expected'] != expected or len(cases) != expected:
@@ -43,8 +47,9 @@ def validate_plans(document):
         if collections.Counter(task_capabilities[t] for t in tasks) != CAPABILITY_COUNTS:
             raise ValueError('Expected all 42 official task families')
         repeats = collections.Counter(len(c) for c in tasks.values())
-        if repeats != ({1: 42} if pid == 'first_round' else {1: 19, 4: 23}):
+        if repeats != allocation:
             raise ValueError('Fixed task allocation changed')
+        repeated_tasks[pid] = {task for task, cases in tasks.items() if len(cases) > 1}
         for task, task_cases in tasks.items():
             generalization = task_capabilities[task] == 'Generalization'
             n = len(task_cases)
@@ -52,8 +57,12 @@ def validate_plans(document):
                                if generalization else ('standard', i) for i in range(n)}
             if {(c['variant'], c['scene']) for c in task_cases} != expected_tuples:
                 raise ValueError('Fixed scene prefix changed')
-    if not {case_key(c) for c in plans['first_round']['cases']} <= {case_key(c) for c in plans['P50_111']['cases']}:
-        raise ValueError('P50_111 must contain the first round')
+    if repeated_tasks['spiky2_65'] != repeated_tasks['P50_111']:
+        raise ValueError('Spiky-2 must repeat the same 23 spiky tasks as P50_111')
+    first, compact, full = ({case_key(c) for c in plans[pid]['cases']}
+                            for pid in PLAN_ALLOCATIONS)
+    if not first <= compact <= full:
+        raise ValueError('Fixed plans must contain first_round within Spiky-2 within P50_111')
     return plans
 
 

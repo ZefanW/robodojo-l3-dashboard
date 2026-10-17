@@ -275,14 +275,21 @@ function fixture(groups){
  const ui=await boot(),data=fixture([["a",[record("a1","task")]], ["b",[record("b1","task")]]]);
  const score=(id,n,value)=>({plan_id:id,status:"complete",completed:n,expected:n,score:value,success_rate:.25,missing_cases:[],conflicts:[]});
  const doc={schema_version:"robodojo-api-v1",snapshot_id:require("crypto").createHash("sha256").update(JSON.stringify(data)).digest("hex"),experiments:[
-  {experiment_id:"a",evaluation_scores:{first_round:score("first_round",42,.625),P50_111:{...score("P50_111",111,.99),status:"incomplete",completed:80,missing_cases:[{task:"missing_task",variant:"random",seed:0,scene:1}]}}},
-  {experiment_id:"b",evaluation_scores:{first_round:score("first_round",42,.2),P50_111:score("P50_111",111,.3)}}]};
+  {experiment_id:"a",evaluation_scores:{first_round:score("first_round",42,.625),spiky2_65:score("spiky2_65",65,.55),P50_111:{...score("P50_111",111,.99),status:"incomplete",completed:80,missing_cases:[{task:"missing_task",variant:"random",seed:0,scene:1}]}}},
+  {experiment_id:"b",evaluation_scores:{first_round:score("first_round",42,.2),spiky2_65:{...score("spiky2_65",65,.88),status:"incomplete",completed:64,missing_cases:[{task:"second_spiky_sample",variant:"standard",seed:0,scene:0}]},P50_111:score("P50_111",111,.3)}}]};
  ui.setPayload(data);ui.setEvaluations(doc);await ui.evaluate("load()");
  let displayed=text(ui.get("fixed-evaluation-summary"));
  assert(displayed.includes("62.5%"));assert(displayed.includes("80 / 111"));assert(!displayed.includes("99.0%"));assert(displayed.includes("missing_task"));
+ assert(displayed.includes("Spiky-2 · 65例"));assert(displayed.includes("55.0%"));assert(displayed.includes("65 / 65"));
+ const labels=all(ui.get("fixed-evaluation-summary"),e=>e.className==="fixed-score-label").map(e=>e.textContent);
+ assert.deepEqual(labels,["首轮 Score","Spiky-2 · 65例 Score","P50_111 Score"]);
  assert(text(ui.get("experiments")).includes("62.5%"));assert(text(ui.get("experiments")).includes("30.0%"));
  ui.get("search").value="task";ui.get("search").emit("input");ui.get("detail-round").value="all";ui.get("detail-round").emit("change");
  assert(text(ui.get("fixed-evaluation-summary")).includes("62.5%"));
+ ui.get("detail-experiment").value="b";ui.get("detail-experiment").emit("change");
+ displayed=text(ui.get("fixed-evaluation-summary"));assert(displayed.includes("64 / 65"));assert(displayed.includes("second_spiky_sample"));assert(!displayed.includes("55.0%"));assert(!displayed.includes("88.0%"));
+ assert.equal(ui.get("search").value,"task");assert.equal(ui.get("detail-round").value,"all");
+ ui.get("detail-experiment").value="a";ui.get("detail-experiment").emit("change");assert(text(ui.get("fixed-evaluation-summary")).includes("55.0%"));
  doc.experiments[0].evaluation_scores.P50_111=score("P50_111",111,.375);ui.setEvaluations(doc);
  const before=ui.evaluationFetches();await ui.evaluate("load()");
  assert.equal(ui.evaluationFetches(),before+1,"Unchanged index must retry the evaluation API");
@@ -292,8 +299,10 @@ function fixture(groups){
  assert.strictEqual(ui.get("fixed-evaluation-summary").children[0],retainedNode,"Unchanged API and index must not rebuild the view");
  // A misleading complete status must not publish a score with a missing case or conflict.
  doc.experiments[0].evaluation_scores.P50_111.missing_cases=[{task:"not_ready",variant:"standard",seed:0,scene:0}];
+ doc.experiments[0].evaluation_scores.spiky2_65.conflicts=[{case:{task:"spiky_conflict",variant:"standard",seed:0,scene:1},run_ids:["spiky-one","spiky-two"]}];
  doc.experiments[0].evaluation_scores.first_round.conflicts=[{case:{task:"overlap",variant:"standard",seed:0,scene:0},run_ids:["one","two"]}];
  await ui.evaluate("load()");displayed=text(ui.get("fixed-evaluation-summary"));assert(!displayed.includes("37.5%"));assert(!displayed.includes("62.5%"));assert(displayed.includes("overlap"));assert(displayed.includes("结果待核对"));
+ assert(!displayed.includes("55.0%"));assert(displayed.includes("spiky_conflict"));assert(displayed.includes("spiky-one / spiky-two"));
 ''')
 
     def test_fixed_scores_retry_after_snapshot_mismatch_http_304_and_api_failure(self):

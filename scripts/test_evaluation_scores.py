@@ -49,10 +49,51 @@ class EvaluationScoresTests(unittest.TestCase):
         before = copy.deepcopy(self.source)
         result = evaluate_groups(self.source, self.document)['experiment']
         self.assertEqual(result['first_round']['completed'], 42)
+        self.assertEqual(result['spiky2_65']['completed'], 65)
+        self.assertEqual(result['spiky2_65']['score'], .5)
+        self.assertEqual(result['spiky2_65']['status'], 'complete')
         self.assertEqual(result['P50_111']['completed'], 111)
         self.assertEqual(result['P50_111']['score'], .5)
         self.assertEqual(result['P50_111']['status'], 'complete')
         self.assertEqual(self.source, before)
+
+    def test_spiky2_reuses_exact_first_two_samples_and_same_spiky_list(self):
+        compact = self.plans['spiky2_65']['cases']
+        self.assertEqual(len(compact), 65)
+        self.assertEqual([(c['variant'], c['scene']) for c in compact if c['task'] == 'push_T'],
+                         [('random', 0), ('standard', 0)])
+        self.assertEqual([(c['variant'], c['scene']) for c in compact if c['task'] == 'align_blocks'],
+                         [('standard', 0), ('standard', 1)])
+        self.assertTrue({case_key(c) for c in self.plans['first_round']['cases']}
+                        < {case_key(c) for c in compact}
+                        < {case_key(c) for c in self.plans['P50_111']['cases']})
+        changed = copy.deepcopy(self.document)
+        extra = next(c for c in changed['plans']['spiky2_65']['cases']
+                     if c['task'] == 'align_blocks' and c['scene'] == 1)
+        extra.update(task='build_tower', capability='Precision')
+        with self.assertRaisesRegex(ValueError, 'same 23 spiky tasks'):
+            validate_plans(changed)
+
+    def test_spiky2_missing_second_sample_is_not_filled_by_later_scenes(self):
+        rid = next(r['run_id'] for r in self.rows if r['episode']['task'] == 'push_T'
+                   and r['episode']['variant'] == 'standard' and r['episode']['scene'] == 0)
+        self.group['run_ids'].remove(rid)
+        result = self.score('spiky2_65')
+        self.assertEqual(result['completed'], 64)
+        self.assertIsNone(result['score'])
+        self.assertEqual([(c['task'], c['variant'], c['scene']) for c in result['missing_cases']],
+                         [('push_T', 'standard', 0)])
+        self.assertEqual(self.score('first_round')['status'], 'complete')
+        self.group['run_ids'].append(rid)
+        self.assertEqual(self.score('spiky2_65')['status'], 'complete')
+
+    def test_spiky2_repetition_does_not_increase_task_weight(self):
+        for row in self.rows:
+            row['outcome']['score'] = 1 if row['episode']['task'] == 'align_blocks' else 0
+        self.assertAlmostEqual(self.score('spiky2_65')['score'], 1/40)
+        for row in self.rows:
+            row['outcome']['score'] = 1 if row['episode']['task'] == 'pour_by_language' else 0
+        self.assertAlmostEqual(self.score('spiky2_65')['score'], 1/40)
 
     def test_task_then_capability_average_not_flat_episode_average(self):
         for row in self.rows:
@@ -154,9 +195,12 @@ class EvaluationScoresTests(unittest.TestCase):
                 return json.loads((root/'api/v1/evaluations.json').read_bytes())
             pending = rebuild()
             self.assertEqual(pending['experiments'][0]['evaluation_scores']['P50_111']['status'], 'incomplete')
+            self.assertEqual(pending['experiments'][0]['evaluation_scores']['spiky2_65']['completed'], 64)
+            self.assertIsNone(pending['experiments'][0]['evaluation_scores']['spiky2_65']['score'])
             self.group['run_ids'].append(missing_id)
             ready = rebuild()
             self.assertEqual(ready['experiments'][0]['evaluation_scores']['P50_111']['score'], .5)
+            self.assertEqual(ready['experiments'][0]['evaluation_scores']['spiky2_65']['score'], .5)
             for path in ('experiments.json', 'experiments/experiment.json'):
                 doc = json.loads((root/'api/v1'/path).read_bytes())
                 scores = doc['experiments'][0]['evaluation_scores'] if path == 'experiments.json' else doc['evaluation_scores']

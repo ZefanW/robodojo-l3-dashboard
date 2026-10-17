@@ -18,8 +18,14 @@ dashboard repository. GitHub Actions then publishes the snapshot. New uploads
 wait while the Mac is offline; published pages remain available. Experiment code
 is maintained separately in `ZefanW/robodojo-l3-lab`.
 
-Every experiment also reports two fixed evaluations: the first 42-case round and
-P50_111. The [frozen sample plan](web/evaluation-plans.json) selects exact task,
+Every experiment also reports three fixed evaluations: the first 42-case round,
+**Spiky-2 (65 cases)** and P50_111. Spiky-2 evaluates the same 23 fixed spiky task
+families twice and the other 19 once; it includes all 42 first-round cases.
+After the first round, add only 23 cases: standard scene1 for ordinary tasks and
+standard scene0 for Generalization tasks (whose first sample is random scene0).
+All use seed0 and the same task → capability → five-capability equal-weight mean.
+Its API plan ID is `spiky2_65`; P50_111 remains available independently.
+The [frozen sample plan](web/evaluation-plans.json) selects exact task,
 variant, seed and scene identities, independently of upload order. Every Pages
 build recomputes coverage and publishes a score only when the required samples
 are complete and unambiguous. The existing publication service supplies new

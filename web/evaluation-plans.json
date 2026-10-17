@@ -1,6 +1,6 @@
 {
   "schema_version": "robodojo-evaluation-plans-v1",
-  "plan_version": "2026-10-16",
+  "plan_version": "2026-10-17",
   "score_scale": "0..1",
   "aggregation": "task_mean_then_capability_mean_then_equal_five_capability_mean",
   "source_proposal_sha256": "24a15606dbbc136d1296b641b731aa40cdec2f52b2b9ca60d48ac5fb349a392f",
@@ -306,6 +306,471 @@
           "seed": 0,
           "scene": 0,
           "capability": "Generalization"
+        }
+      ]
+    },
+    "spiky2_65": {
+      "plan_id": "spiky2_65",
+      "label": "Spiky-2（65例）",
+      "expected": 65,
+      "task_count": 42,
+      "description": "23 spiky tasks twice, 19 other tasks once; includes the first round. Ordinary repeats use standard scene0/1; Generalization repeats use random/standard scene0. Seed zero; unchanged official task/capability averaging.",
+      "source_proposal_sha256": "32de09a8c9fae7dc1f4b7d0299e3e008da1be26837bc95e9ea9504f206d722e6",
+      "cases": [
+        {
+          "task": "align_blocks",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "align_blocks",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "arrange_largest_number",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "arrange_largest_number",
+          "capability": "Generalization",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "build_tower",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "classify_objects",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "classify_objects",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "classify_objects_by_language",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "classify_objects_by_language",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "cover_blocks",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "cover_blocks",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "deposit_coin",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "fasten_screws",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "fasten_screws",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "fill_egg_holder",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "fill_pen_holder",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "fold_clothes",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "fold_clothes",
+          "capability": "Generalization",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "general_pickup",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "general_pickup",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "hang_mugs",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "imitate_sorting_sequence",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "imitate_sorting_sequence",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "insert_key",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "insert_tubes",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "make_kong",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "make_toast",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "match_and_pick_from_conveyor",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "match_and_pick_from_conveyor",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "organize_table",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "pack_objects_into_box",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "pack_objects_into_box",
+          "capability": "Generalization",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "pick_from_conveyor_by_image",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "pick_from_conveyor_by_image",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "play_Xylophone",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "play_Xylophone",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "play_stacking_toy",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "play_tic_tac_toe",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "plug_in_charger",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "plug_in_charger",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "pour_balls_into_vase",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "pour_balls_into_vase",
+          "capability": "Precision",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "pour_by_language",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "pour_liquid_into_cup",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "press_by_number",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "press_by_number",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "push_T",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "push_T",
+          "capability": "Generalization",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "put_bottles_into_dustbin",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "put_bottles_into_dustbin",
+          "capability": "Long-Horizon",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "solve_equation",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "solve_equation",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "sort_nesting_dolls_by_size",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "sort_nesting_dolls_by_size",
+          "capability": "Generalization",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "stack_blocks",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "stack_blocks_by_language",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "stack_blocks_by_language",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "stack_bowls",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "stack_bowls",
+          "capability": "Generalization",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "store_laptop_and_headphones",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "store_tools_in_toolbox",
+          "capability": "Open",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "swap_T",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "swap_T",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 1
+        },
+        {
+          "task": "swap_blocks",
+          "capability": "Memory",
+          "variant": "standard",
+          "seed": 0,
+          "scene": 0
+        },
+        {
+          "task": "sweep_blocks",
+          "capability": "Generalization",
+          "variant": "random",
+          "seed": 0,
+          "scene": 0
         }
       ]
     },

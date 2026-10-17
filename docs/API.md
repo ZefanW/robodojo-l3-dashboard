@@ -18,7 +18,7 @@ OpenAPI：<https://zefanw.github.io/robodojo-l3-dashboard/api/v1/openapi.json>
 | --- | --- |
 | `index.json` | API 版本、当前快照 SHA、数量及接口链接 |
 | `experiments.json` | 实验组列表、显示名称、原 selection ID、模型、协议、指标和结果数量 |
-| `evaluations.json` | 所有实验的固定首轮42 / P50_111成绩、覆盖、缺失样本和入选原记录 |
+| `evaluations.json` | 所有实验的固定首轮42 / Spiky-2（65例）/ P50_111成绩、覆盖、缺失样本和入选原记录 |
 | `experiments/{experiment_id}.json` | 一个实验组的完整公开汇总，包括逐轮、能力维度、成本及统计限制 |
 | `experiments/{experiment_id}/results.json` | 该组结果摘要及各条记录的入选状态、轮次、详情 URL |
 | `results.json` | 所有公开结果的轻量摘要，适合自行筛选任务、effort、seed、scene |
@@ -119,10 +119,10 @@ console.table(results.map(r => ({
 
 ### 得分、证据与费用
 
-#### 自动发布首轮和 P50_111 成绩
+#### 自动发布首轮、Spiky-2 和 P50_111 成绩
 
 `evaluations.json` 提供所有组的固定评测结果；实验列表与单组详情同时提供
-`evaluation_scores`。它包含 `first_round` 与 `P50_111` 两项，使用同一份
+`evaluation_scores`。它包含 `first_round`、`spiky2_65` 与 `P50_111` 三项，使用同一份
 [冻结样本定义](../web/evaluation-plans.json)。每次看板发布自动重算，无需逐组手填成绩。
 
 每项包含 `status`、`completed`、`expected`、`score`、`success_rate`、
@@ -130,10 +130,19 @@ console.table(results.map(r => ({
 `capability_scores`。只有全部指定样本可用且无冲突时，`status` 为 `complete`，
 总分才非空；缺样本或多次尝试有歧义时不输出局部总分。
 
-两项固定评测都采用 seed 0。首轮为30个任务 standard scene0 +12个泛化任务
-random scene0。P50_111为23个固定任务各4次、其余19个各1次；4次对应非泛化
-scene0–3，泛化 random/standard 的 scene0–1。不会用其他scene、seed或其他组
-补齐缺口，也不会因为已上传样本总数达到111就宣告完成。
+三项固定评测都采用 seed 0：
+
+| API plan ID | 名称与样本规则 |
+| --- | --- |
+| `first_round` | 首轮42：30个任务 standard scene0 +12个泛化任务 random scene0 |
+| `spiky2_65` | Spiky-2：23个固定 spiky 任务各2次、其余19个各1次，共65例 |
+| `P50_111` | 同一批23个 spiky 任务各4次、其余19个各1次，共111例 |
+
+Spiky-2 完整包含首轮，跑完首轮后只需补23例：入选的普通任务补 standard
+scene1，入选的泛化任务补 standard scene0。P50_111 的4次对应非泛化
+scene0–3，泛化 random/standard 的 scene0–1。入选任务名单在冻结样本定义中，
+不会按某个实验的新成绩重新筛选。不会用其他scene、seed或其他组补齐缺口，
+也不会仅因已上传总数达到65或111就宣告完成。
 
 得分先在task内平均，再在能力内平均，最后五能力等权平均；SR同样处理。
 `evidence_basis` 与 `supplementary_run_ids` 保留既有用户接受补件的披露；

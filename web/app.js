@@ -52,7 +52,7 @@ function renderTokenSummary(g,round){
 }
 let loading=false, lastPayload="", lastEtag="", lastSnapshotId="";
 let fixedEvaluationState="pending", fixedEvaluations=new Map();
-const fixedPlans=[["first_round","首轮",42],["P50_111","P50_111",111]];
+const fixedPlans=[["first_round","首轮",42],["spiky2_65","Spiky-2 · 65例",65],["P50_111","P50_111",111]];
 const fixedResult=(g,id)=>fixedEvaluationState==="ready"?fixedEvaluations.get(g.group_id)?.[id]:null;
 function fixedResultComplete(result,expected){
   return result?.status==="complete"&&result.completed===expected&&result.expected===expected
@@ -82,8 +82,8 @@ function renderFixedEvaluationSummary(g){
   host.append(make("h3","固定评测成绩"),make("p","按固定场景顺序统计，样本齐全后自动发布；不随下方轮次筛选改变。","small"));
   renderFixedScores(host,g);
   const details=make("details",undefined,"fixed-score-details");details.append(make("summary","统计规则与待补结果"));
-  details.append(make("p","先对每个任务的样本取均值，再在能力内对任务取均值，最后对五类能力等权平均。首轮为 42 个任务；P50_111 为 23 个任务各 4 次、其余 19 个任务各 1 次。","small"),
-    make("p","首轮：30 个普通任务使用 scene0；12 个泛化任务使用 random scene0。需 4 次的普通任务使用 scene0–3，泛化任务使用 random / standard 的 scene0–1（与前 4 轮一致）。只计入本实验的指定样本，不用较晚场景补位，也不选取最高分。","small"));
+  details.append(make("p","先对每个任务的样本取均值，再在能力内对任务取均值，最后对五类能力等权平均。首轮为 42 个任务；Spiky-2 为 23 个固定 spiky 任务各 2 次、其余 19 个任务各 1 次，共 65 例；P50_111 将同一批 23 个任务扩展为各 4 次。两种扩展均包含首轮。","small"),
+    make("p","均使用 seed0。首轮：30 个普通任务使用 standard scene0；12 个泛化任务使用 random scene0。Spiky-2 在首轮上补 23 例：普通任务补 standard scene1，泛化任务补 standard scene0。P50_111 需 4 次的普通任务使用 scene0–3，泛化任务使用 random / standard 的 scene0–1（与前 4 轮一致）。只计入本实验的指定样本，不用较晚场景补位，也不选取最高分。","small"));
   for(const [id,label,expected] of fixedPlans){
     const result=fixedResult(g,id),section=make("section");section.append(make("h4",label+" · "+fixedResultStatus(result,expected)));
     if(result){

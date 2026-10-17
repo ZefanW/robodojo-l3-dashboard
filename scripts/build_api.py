@@ -207,7 +207,7 @@ def openapi(api_url):
     specs = [
         ('/index.json','Get API version, snapshot and endpoint links',None),
         ('/experiments.json','List experiment groups and summary metrics',None),
-        ('/evaluations.json','Get frozen first-round and P50_111 scores, exact coverage and selected result IDs',None),
+        ('/evaluations.json','Get frozen first-round, Spiky-2 (65 cases) and P50_111 scores, exact coverage and selected result IDs',None),
         ('/experiments/{experiment_id}.json','Get original experiment summary and rounds','experiment_id'),
         ('/experiments/{experiment_id}/results.json','List selected and preserved results in an experiment','experiment_id'),
         ('/results.json','List all published result summaries',None),

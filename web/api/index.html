@@ -11,7 +11,7 @@
 <table><thead><tr><th>GET 路径</th><th>内容</th></tr></thead><tbody>
 <tr><td><a href="v1/index.json">index.json</a></td><td>版本、快照、数量与接口链接</td></tr>
 <tr><td><a href="v1/experiments.json">experiments.json</a></td><td>全部实验组、名字、模型、协议、指标</td></tr>
-<tr><td><a href="v1/evaluations.json">evaluations.json</a></td><td>固定首轮42 / P50_111成绩、覆盖、缺失项与入选结果</td></tr>
+<tr><td><a href="v1/evaluations.json">evaluations.json</a></td><td>固定首轮42 / Spiky-2（65例）/ P50_111成绩、覆盖、缺失项与入选结果</td></tr>
 <tr><td>experiments/{experiment_id}.json</td><td>单组完整汇总、逐轮统计与限制</td></tr>
 <tr><td>experiments/{experiment_id}/results.json</td><td>组内结果、入选状态、轮次与详情链接</td></tr>
 <tr><td><a href="v1/results.json">results.json</a></td><td>全部公开结果的轻量摘要</td></tr>
@@ -39,7 +39,7 @@ print(detail["result"]["outcome"])
 for item in detail["evidence"]:
     print(item["kind"], item["data"])</pre>
 <h2>使用约定</h2>
-<p><strong>固定评测自动计分：</strong>每次发布按同一冻结样本定义检查首轮42与P50_111。齐全且无歧义才给总分；缺失显示覆盖，分数为null。P50_111包含首轮，23任务各4次、其余19任务各1次；前4次对应非泛化scene0–3、泛化standard/random各scene0–1，seed均为0。先task内平均，再能力内平均，最后五能力等权。实验接口中的 <code>evaluation_scores</code> 与 <code>evaluations.json</code> 同步更新。</p>
+<p><strong>固定评测自动计分：</strong>每次发布按同一冻结样本定义检查首轮42、Spiky-2（65例）与P50_111。齐全且无歧义才给总分；缺失显示覆盖，分数为null。Spiky-2（API ID：<code>spiky2_65</code>）为23个固定spiky任务各2次、其余19个各1次；它包含首轮，只需额外补23例：普通任务补standard scene1，泛化任务补standard scene0（首轮为random scene0）。P50_111将同一批23任务扩展到各4次：非泛化scene0–3、泛化standard/random各scene0–1。seed均为0，先task内平均，再能力内平均，最后五能力等权。实验接口中的 <code>evaluation_scores</code> 与 <code>evaluations.json</code> 同步更新。</p>
 <p><code>experiment_id</code> 从实验列表获取；组定义变化时可能变化。<code>run_id</code> 保留原运行身份。<code>memberships</code> 明确入选、历史未入选、补充记录和轮次。得分为 <strong>0–1</strong>，成功标记独立；缺失值保持 null，补充材料不等于严格原生证据。</p>
 <p>接口是静态 JSON，保留 <code>.json</code> 后缀；查询参数不会筛选数据。请用任务接口或客户端筛选。跨请求比较 <code>snapshot_id</code>，不一致时重新获取。错误路径返回 HTTP 404，先检查状态再解析 JSON。</p>
 <footer><a href="https://github.com/ZefanW/robodojo-l3-dashboard/blob/main/docs/API.md">查看字段定义、更多示例、缓存与错误说明 →</a></footer>
