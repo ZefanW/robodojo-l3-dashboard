@@ -282,7 +282,10 @@ const outcomeLabel = row => row.runs.length>1?"结果待核对":!row.runs.length
 const outcomeClass = row => row.runs.length!==1?"pending":row.runs[0].outcome.success===true?"success":row.runs[0].outcome.success===false?"failure":"pending";
 function experimentRows(g, roundNumber){
   const groupIds=new Set(g.run_ids), members=ledger.runs.filter(r=>groupIds.has(r.run_id));
-  const overlay=(ledger.round_selections||[]).find(s=>s.id===g.selection_id);
+  // A group may combine immutable source selections under a fixed display plan.
+  const displaySelection=g.display_round_selection;
+  if(displaySelection&&(displaySelection.schema_version!=="l3-group-display-round-selection-v1"||!Array.isArray(displaySelection.rounds)))throw new Error("Invalid group display selection");
+  const overlay=displaySelection||(ledger.round_selections||[]).find(s=>s.id===g.selection_id);
   let expected=[];
   if(!overlay && members.length){
     expected=members.find(r=>r.selection?.expected_episodes)?.selection.expected_episodes||[];
@@ -295,6 +298,10 @@ function experimentRows(g, roundNumber){
     const ids=new Set(round.run_ids), runs=members.filter(r=>ids.has(r.run_id));
     return wanted.map(episode=>({episode,round:round.round,runs:runs.filter(r=>episodeKey(r.episode)===episodeKey(episode)&&r.episode.capability===episode.capability)}));
   }).sort((a,b)=>a.episode.task.localeCompare(b.episode.task)||a.round-b.round||a.episode.variant.localeCompare(b.episode.variant));
+}
+function roundDisplayLabel(g,r){
+  const label=g.display_round_selection?.rounds?.find(x=>x.round===r.round)?.label;
+  return typeof label==="string"&&label?label:"R"+r.round+" · "+coverage(r.metrics);
 }
 function releaseVideo(){if(activeVideo){activeVideo.pause();activeVideo.removeAttribute("src");activeVideo.load();activeVideo=null;}}
 function clearDetail(){detailGeneration++;releaseVideo();selectedRowKey=null;selectedRowSignature=null;byId("detail-body").replaceChildren();byId("detail-title").textContent="选择一个任务";byId("detail-caption").textContent="查看原生结果、三路视频与动作反馈。";}
@@ -320,7 +327,7 @@ function renderDetailNavigation(g){
   const available=visibleGroups();
   for(const item of available){const option=make("option",experimentOptionName(item,available));option.value=item.group_id;groups.append(option);}
   groups.value=g.group_id;
-  for(const [value,label] of [["all","全部轮次"],...g.rounds.map(r=>[String(r.round),"R"+r.round+" · "+coverage(r.metrics)])]){
+  for(const [value,label] of [["all","全部轮次"],...g.rounds.map(r=>[String(r.round),roundDisplayLabel(g,r)])]){
     const option=make("option",label);option.value=value;rounds.append(option);
   }
   rounds.value=selectedRound;
@@ -339,7 +346,7 @@ function experimentSummary(g){
     const value=ambiguous?null:multiple?(n&&values.every(finite)?values.reduce((a,b)=>a+b,0)/n:null):dimension.observed_score;
     return {name,score:value,completed:dimension.completed||0,expected:dimension.expected};
   });
-  return {score,sr,stddev,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?"完整第一轮":"当前已发布部分，非最终成绩"};
+  return {score,sr,stddev,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?(g.display_round_selection?.plan_id==="P50_111"?"完整 P50_111":"完整第一轮"):"当前已发布部分，非最终成绩"};
 }
 function renderExperimentSummary(button,g){
   renderFixedScores(button,g,true);
@@ -383,7 +390,7 @@ function renderExperiment(){
   byId("experiment-id").textContent="原始 profile："+g.protocol.profile+" · "+groupLabel(g)+"："+g.selection_id;
   renderDetailNavigation(g);renderFixedEvaluationSummary(g);
   const rounds=byId("round-tabs");rounds.replaceChildren();
-  for(const [value,label] of [["all","全部轮次"],...(g.rounds||[]).map(r=>[String(r.round),"R"+r.round+" · "+coverage(r.metrics)])]){
+  for(const [value,label] of [["all","全部轮次"],...(g.rounds||[]).map(r=>[String(r.round),roundDisplayLabel(g,r)])]){
     if(value==="all"&&g.rounds.length===1)continue;
     const b=make("button",label,"pill"+(selectedRound===value?" active":""));b.type="button";b.setAttribute("aria-pressed",String(selectedRound===value));
     b.addEventListener("click",()=>selectRound(value));rounds.append(b);

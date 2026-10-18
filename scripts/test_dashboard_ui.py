@@ -123,6 +123,48 @@ function fixture(groups){
         result = subprocess.run([node, "-e", script, str(source)], capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_group_display_plan_spans_source_selections_preserves_missing_and_conflicts(self):
+        self.run_ui_check(r'''
+ const ui=await boot();
+ const first=Array.from({length:42},(_,i)=>record("first-"+i,"task_"+i,"standard",0,0));
+ const extra=Array.from({length:23},(_,i)=>[1,2,3].map(scene=>record("extra-"+i+"-"+scene,"task_"+i,"standard",0,scene))).flat();
+ const data=fixture([["merged",[...first,...extra]]]),group=data.groups[0];
+ const expected=data.runs.map(r=>({...r.episode}));
+ for(const r of first)r.selection={id:"original42",expected_episodes:first.map(r=>({...r.episode}))};
+ for(const r of extra)r.selection={id:"extension69"};
+ group.display_round_selection={schema_version:"l3-group-display-round-selection-v1",plan_id:"P50_111",
+  rounds:[{round:1,label:"P50_111 · 111例",expected_episodes:expected}]};
+ // An older global selection must not hide the extension's other scenes.
+ data.round_selections=[{id:"merged",rounds:[{round:1,expected_episodes:first.map(r=>({...r.episode}))}]}];
+ const original=JSON.stringify(data);ui.install(data);
+ let rows=ui.evaluate('experimentRows(ledger.groups[0],"all")');
+ assert.equal(rows.length,111);assert(rows.every(r=>r.runs.length===1));
+ assert.equal(new Set(rows.map(r=>JSON.stringify(r.episode))).size,111);
+ assert.equal(new Set(rows.flatMap(r=>r.runs.map(x=>x.run_id))).size,111);
+ assert.deepEqual([...new Set(rows.map(r=>r.episode.scene))].sort(),[0,1,2,3]);
+ assert.equal(ui.evaluate('experimentSummary(ledger.groups[0]).basis'),"完整 P50_111");
+ assert(text(ui.get("round-tabs")).includes("P50_111 · 111例"));
+ assert(ui.get("detail-round").options.some(o=>o.textContent==="P50_111 · 111例"));
+ assert.equal(JSON.stringify(data),original,"Display must not rewrite immutable selections or result data");
+ const partial=JSON.parse(original),missingId=extra[0].run_id;
+ partial.runs=partial.runs.filter(r=>r.run_id!==missingId);
+ partial.groups[0].run_ids=partial.groups[0].run_ids.filter(id=>id!==missingId);
+ partial.groups[0].rounds[0].run_ids=partial.groups[0].rounds[0].run_ids.filter(id=>id!==missingId);
+ ui.install(partial);rows=ui.evaluate('experimentRows(ledger.groups[0],1)');
+ assert.equal(rows.length,111);assert.equal(rows.filter(r=>r.runs.length===0).length,1);
+ const empty=rows.find(r=>r.runs.length===0);ui.context.empty=empty;
+ assert.equal(ui.evaluate('outcomeLabel(empty)'),"未发布");assert.equal(empty.outcome,undefined);
+ const duplicate=JSON.parse(original),copy={...duplicate.runs[0],run_id:"duplicate-case"};
+ duplicate.runs.push(copy);duplicate.groups[0].run_ids.push(copy.run_id);duplicate.groups[0].rounds[0].run_ids.push(copy.run_id);
+ ui.install(duplicate);rows=ui.evaluate('experimentRows(ledger.groups[0],"all")');
+ assert.equal(rows.length,111);assert.equal(rows.filter(r=>r.runs.length===2).length,1);
+ ui.context.conflict=rows.find(r=>r.runs.length===2);assert.equal(ui.evaluate('outcomeLabel(conflict)'),"结果待核对");
+ const ordinary=fixture([["ordinary",[record("ordinary1","original_task")]]]);ui.install(ordinary);
+ assert.equal(ui.evaluate('experimentRows(ledger.groups[0],"all").length'),1);
+ assert.equal(ui.evaluate('experimentSummary(ledger.groups[0]).basis'),"完整第一轮");
+ assert.equal(ui.get("detail-round").options[1].textContent,"R1 · 1 / 1");
+''')
+
     def test_merged_upload_fields_prefer_primary_source_without_rewriting_originals(self):
         self.run_ui_check(r'''
  const ui=await boot(),data=fixture([["main",[record("pilot","task_a"),record("main_run","task_b")]]]);
