@@ -97,6 +97,117 @@ function renderFixedEvaluationSummary(g){
   }
   host.append(details);
 }
+
+/*
+ * The official RoboDojo L3 reference is deliberately kept outside the
+ * experiment ledger.  It is an upstream reference, not a result produced by
+ * this checkout, so it must never change the experiment count or score cards.
+ * The optional JSON file is published beside the catalog and is rendered only
+ * after its schema and arrays have been checked.
+ */
+let officialLeaderboardState="pending", officialLeaderboard=null;
+const officialScore=v=>typeof v==="number"&&Number.isFinite(v)?(v>=0&&v<=1?pct(v):v.toFixed(1)+"%"):"—";
+const officialCount=(value,expected)=>Number.isInteger(value)?(Number.isInteger(expected)?value+" / "+expected:String(value)):"—";
+const officialRate=item=>item?.success_rate??item?.sr;
+const officialCompleted=item=>item?.completed??item?.episodes??item?.count;
+const officialExpected=item=>item?.expected??item?.episodes;
+const officialRoundId=round=>round?.id??round?.round;
+function officialMetric(value,label){
+  const cell=make("div",undefined,"official-metric");
+  cell.append(make("span",label,"official-metric-label"),make("strong",officialScore(value),"official-metric-value"));
+  return cell;
+}
+function officialRoundLabel(round){return round?.label||round?.name||round?.id||"未命名轮次";}
+function officialRows(data){
+  /* The normalized official export keeps raw 2100 slot records and also
+   * publishes one 42-task case list per mapped round.  Prefer the latter for
+   * the readable cross-round table, while leaving the raw records in the
+   * downloaded data file for provenance. */
+  if(Array.isArray(data.rounds)&&data.rounds.some(round=>Array.isArray(round.cases))){
+    const grouped=new Map();
+    const collections=[...(Array.isArray(data.fixed_plans)?data.fixed_plans:[]),...data.rounds];
+    for(const round of collections){
+      const key=round.id??officialRoundId(round);
+      for(const item of (Array.isArray(round.cases)?round.cases:[])){
+        if(!item||typeof item.task!=="string")continue;
+        const row=grouped.get(item.task)||{task:item.task,dimension:item.dimension||item.capability,scores:{},_round_scores:[]};
+        row.scores[key]=item.score; if(data.rounds.includes(round)&&typeof item.score==="number")row._round_scores.push(item.score);grouped.set(item.task,row);
+      }
+    }
+    return [...grouped.values()].map(row=>{const scores=row._round_scores,copy={task:row.task,dimension:row.dimension,scores:row.scores};if(scores.length)copy.total_score=scores.reduce((a,b)=>a+b,0)/scores.length;return copy;});
+  }
+  const source=Array.isArray(data.cases)?data.cases:Array.isArray(data.records)?data.records:Array.isArray(data.tasks)?data.tasks:[];
+  return source.filter(row=>row&&typeof row.task==="string");
+}
+function renderOfficialLeaderboard(data){
+  const host=byId("official-leaderboard");if(!host)return;
+  host.replaceChildren();host.hidden=true;
+  if(!data||data.schema_version!=="robodojo-official-l3-v1"||!Array.isArray(data.rounds)||!officialRows(data).length)return;
+  const title=typeof data.title==="string"&&data.title.trim()?data.title:"官方 RoboDojo L3 统分结果";
+  const source=data.source&&typeof data.source==="object"?data.source:{};
+  const head=make("div",undefined,"official-leaderboard-head");
+  const heading=make("div"),titleNode=make("h2",title);titleNode.id="official-leaderboard-title";heading.append(make("p","OFFICIAL REFERENCE","eyebrow"),titleNode);
+  const sourceLine=make("p","上游参照，独立于本页实验成绩。","small");
+  const sourceLinks=[];if(typeof source.url==="string")sourceLinks.push([source.label||"官方来源",source.url]);
+  if(source.urls&&typeof source.urls==="object")for(const [key,value] of Object.entries(source.urls))if(typeof value==="string")sourceLinks.push([key,value]);
+  if(typeof source.readme_url==="string")sourceLinks.push(["官方说明",source.readme_url]);
+  if(typeof source.per_task_url==="string")sourceLinks.push(["逐任务数据",source.per_task_url]);
+  if(typeof source.case_url==="string")sourceLinks.push(["原始 case 数据",source.case_url]);
+  if(typeof source.records_url==="string")sourceLinks.push(["全量 slot 记录",source.records_url]);
+  if(typeof source.official_cases_url==="string")sourceLinks.push(["全量官方 case",source.official_cases_url]);
+  if(typeof source.official_leaderboard_url==="string")sourceLinks.push(["官方排行榜",source.official_leaderboard_url]);
+  if(typeof source.leaderboard_url==="string")sourceLinks.push(["官方排行榜",source.leaderboard_url]);
+  if(typeof source.auxiliary_url==="string")sourceLinks.push(["HF 运行控制台",source.auxiliary_url]);
+  for(const [label,url] of sourceLinks){sourceLine.append(make("span"," "),link(label+" ↗",url));}
+  if(typeof source.updated_at==="string")sourceLine.append(make("span"," · 更新 "+source.updated_at,"small"));
+  heading.append(sourceLine);head.append(heading);
+  if(typeof data.note==="string")head.append(make("p",data.note,"official-note"));
+  host.append(head);
+  const rounds=data.rounds;
+  const totalValues=(Array.isArray(data.totals)?data.totals:[]).filter(item=>item&&typeof item==="object");
+  for(const item of [data.official_total,data.local_eight_round_total])if(item&&typeof item==="object")totalValues.push(item);
+  const summary=make("div",undefined,"official-summary");
+  const summaryItems=[...totalValues.map(item=>({item,total:true})),...(Array.isArray(data.fixed_plans)?data.fixed_plans:[]).filter(item=>item&&typeof item==="object").map(item=>({item,total:false})),...rounds.map(item=>({item,total:false}))];
+  for(const entry of summaryItems){
+    const item=entry.item,card=make("section",undefined,"official-round"+(entry.total?" official-total":""));
+    card.append(make("h3",item.label||officialRoundLabel(item)));
+    const metrics=make("div",undefined,"official-metrics");
+    metrics.append(officialMetric(item.score,"总分"),officialMetric(officialRate(item),"成功率"));
+    if(Number.isInteger(officialCompleted(item))||Number.isInteger(officialExpected(item)))metrics.append(make("div",undefined,"official-metric"),make("span","覆盖","official-metric-label"),make("strong",officialCount(officialCompleted(item),officialExpected(item)),"official-metric-value"));
+    card.append(metrics);if(typeof item.note==="string")card.append(make("p",item.note,"small"));if(typeof item.description==="string")card.append(make("p",item.description,"small"));summary.append(card);
+  }
+  host.append(summary);
+  const dimensions=Array.isArray(data.dimensions)?data.dimensions:[];
+  if(dimensions.length){
+    const detail=make("details",undefined,"official-cases");detail.append(make("summary","查看维度 / 阶段统分"));
+    const wrap=make("div",undefined,"table-wrap"),table=make("table"),headRow=make("tr");
+    for(const label of ["维度","总分","成功率","完成 / 总量"] )headRow.append(make("th",label));table.append(headRow);
+    for(const item of dimensions){const row=make("tr");row.append(make("td",item.label||item.dimension||item.name||"—"),make("td",officialScore(item.score)),make("td",officialScore(officialRate(item))),make("td",officialCount(officialCompleted(item),officialExpected(item))));table.append(row);}
+    wrap.append(table);detail.append(wrap);host.append(detail);
+  }
+  const rows=officialRows(data),columns=Array.isArray(data.case_columns)?data.case_columns:[...(Array.isArray(data.fixed_plans)?data.fixed_plans:[]),...rounds].map(round=>({id:round.id??officialRoundId(round),label:officialRoundLabel(round)}));
+  if(rows.length){
+    const details=make("details",undefined,"official-cases");details.open=false;details.append(make("summary","查看每个 task 的官方成绩（"+rows.length+" 项）"));
+    const wrap=make("div",undefined,"table-wrap"),table=make("table"),headRow=make("tr");headRow.append(make("th","task"));
+    for(const col of columns){const id=typeof col==="string"?col:col.id,label=typeof col==="string"?col:(col.label||id);const th=make("th",label);th.dataset.column=id;headRow.append(th);}headRow.append(make("th",totalValues.length?totalValues[totalValues.length-1].label||"总分":"总分"));table.append(headRow);
+    for(const row of rows){
+      const tr=make("tr");tr.append(make("td",row.task));const scores=row.scores&&typeof row.scores==="object"?row.scores:{};
+      for(const col of columns){const id=typeof col==="string"?col:col.id;tr.append(make("td",officialScore(scores[id]??row[id])));}
+      tr.append(make("td",officialScore(row.total_score??row.score)));table.append(tr);
+    }
+    wrap.append(table);details.append(wrap);host.append(details);
+  }
+  if(typeof data.provenance_note==="string")host.append(make("p",data.provenance_note,"small"));
+  host.hidden=false;
+}
+async function refreshOfficialLeaderboard(){
+  try{
+    const response=await fetch("data/official-robodojo-l3.json",{cache:"no-cache",credentials:"omit",redirect:"error"});
+    if(!response.ok)throw new Error();const data=await response.json();
+    if(data?.schema_version!=="robodojo-official-l3-v1")throw new Error();
+    officialLeaderboard=data;officialLeaderboardState="ready";renderOfficialLeaderboard(data);
+  }catch{officialLeaderboard=null;officialLeaderboardState="unavailable";const host=byId("official-leaderboard");if(host){host.replaceChildren();host.hidden=true;}}
+}
 async function refreshFixedEvaluations(snapshotId){
   const previous=JSON.stringify([fixedEvaluationState,[...fixedEvaluations]]);
   fixedEvaluationState="pending";fixedEvaluations=new Map();
@@ -535,5 +646,5 @@ byId("restore-hidden").addEventListener("click",()=>{
   const first=ledger.groups[0];if(first)updateGroupPreference(first,{});
 });
 byId("close-detail").addEventListener("click",()=>{taskFocus=null;clearDetail();});
-load();setInterval(()=>{if(!document.hidden)load();},60000);
+refreshOfficialLeaderboard();load();setInterval(()=>{if(!document.hidden){refreshOfficialLeaderboard();load();}},60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)load();});

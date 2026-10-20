@@ -16,6 +16,7 @@
       <p>每个实验 tab 底部列出一组可用的 <code>selection.id</code>、<code>protocol.id</code>、<code>protocol.profile</code>，可直接复制。沿用对应轮次和相同的真实运行配置；每次运行使用唯一 <code>run_id</code>。<a href="https://github.com/ZefanW/robodojo-l3-lab/blob/main/docs/UPLOAD_GUIDE.md" target="_blank" rel="noopener noreferrer">上传指南 ↗</a></p>
     </section>
     <div class="overview"><div class="stats" aria-label="已发布结果"><div><span id="group-count">—</span><p>实验配置</p></div><div><span id="run-count">—</span><p>原生完成并发布</p></div><div><span id="control-count">—</span><p>实际控制步</p></div></div><div id="status" role="status" aria-live="polite">正在加载公开结果…</div></div>
+    <section id="official-leaderboard" class="official-leaderboard" aria-labelledby="official-leaderboard-title" hidden></section>
     <details id="upload-status" class="audit" hidden><summary id="upload-summary">上传状态</summary><div id="upload-items"></div></details>
     <section aria-labelledby="experiments-title"><div class="section-head"><h2 id="experiments-title">选择实验</h2><label class="search">查找实验 <input id="experiment-search" type="search" placeholder="名称、effort 或实验 ID" autocomplete="off"></label></div><div class="group-preferences"><p id="preferences-status" class="small" role="status">实验名称由维护者统一设置；隐藏设置仅在本浏览器保存。</p><button id="show-hidden" type="button" aria-pressed="false">显示隐藏组 (0)</button><button id="restore-hidden" type="button" hidden>恢复全部隐藏组</button></div><div id="experiments" class="experiment-list"></div></section>
     <section id="workspace" hidden>
