@@ -167,7 +167,19 @@ function renderOfficialLeaderboard(data){
   const totalValues=(Array.isArray(data.totals)?data.totals:[]).filter(item=>item&&typeof item==="object");
   for(const item of [data.official_total,data.local_eight_round_total])if(item&&typeof item==="object")totalValues.push(item);
   const summary=make("div",undefined,"official-summary");
-  const summaryItems=[...totalValues.map(item=>({item,total:true})),...(Array.isArray(data.fixed_plans)?data.fixed_plans:[]).filter(item=>item&&typeof item==="object").map(item=>({item,total:false})),...rounds.map(item=>({item,total:false}))];
+  /* Keep the reference block compact: show the official total, the two
+   * proxy views, the first-round view, and the aggregate eight-round view.
+   * The per-round R1--R8 values remain in the published JSON and per-task
+   * table, but do not occupy the main leaderboard surface. */
+  const compactIds=new Set(["official_2100","first_round","spiky2_65","P50_111","local_eight_total"]);
+  const compactItems=[];
+  for(const item of [...totalValues,...(Array.isArray(data.fixed_plans)?data.fixed_plans:[]),...rounds]){
+    if(!item||typeof item!=="object")continue;
+    const id=item.id??item.round;
+    if(!compactIds.has(id)||compactItems.some(entry=>entry.item===item))continue;
+    compactItems.push({item,total:id==="official_2100"||id==="local_eight_total"});
+  }
+  const summaryItems=compactItems;
   for(const entry of summaryItems){
     const item=entry.item,card=make("section",undefined,"official-round"+(entry.total?" official-total":""));
     card.append(make("h3",item.label||officialRoundLabel(item)));
