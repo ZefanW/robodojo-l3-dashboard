@@ -176,7 +176,7 @@ function renderOfficialLeaderboard(data){
   for(const item of [...totalValues,...(Array.isArray(data.fixed_plans)?data.fixed_plans:[]),...rounds]){
     if(!item||typeof item!=="object")continue;
     const id=item.id??item.round;
-    if(!compactIds.has(id)||compactItems.some(entry=>entry.item===item))continue;
+    if(!compactIds.has(id)||compactItems.some(entry=>(entry.item.id??entry.item.round)===id))continue;
     compactItems.push({item,total:id==="official_2100"||id==="local_eight_total"});
   }
   const summaryItems=compactItems;
