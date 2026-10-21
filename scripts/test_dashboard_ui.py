@@ -30,7 +30,7 @@ const context=vm.createContext({URL, console, TextDecoder, crypto:{subtle:{diges
    addEventListener:(name,fn)=>listeners.set(name,fn)},
  fetch:async url=>{if(url!=="data/index.json")return {ok:false};calls++;if(fail)throw new Error("Synthetic offline disconnect");return {ok:true,headers:{get:()=>""},arrayBuffer:async()=>Uint8Array.from(Buffer.from(payload)).buffer};},
  setInterval:(fn,ms)=>intervals.push({fn,ms})});
-vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),context);
+vm.runInContext((fs.readFileSync(require("path").join(require("path").dirname(process.argv[1]),"api-cost.js"),"utf8")+"\n"+fs.readFileSync(process.argv[1],"utf8")),context);
 (async()=>{
  await new Promise(resolve=>setImmediate(resolve));
  assert.match(get("status").textContent,/结果目录/);
@@ -65,7 +65,7 @@ class DashboardPreferencesNavigationTests(unittest.TestCase):
             self.skipTest("Node is required for the offline browser-script check")
         script = r'''
 const fs=require("fs"), vm=require("vm"), assert=require("assert");
-const source=fs.readFileSync(process.argv[1],"utf8");
+const source=(fs.readFileSync(require("path").join(require("path").dirname(process.argv[1]),"api-cost.js"),"utf8")+"\n"+fs.readFileSync(process.argv[1],"utf8"));
 class Element {
  constructor(tag="div"){this.tag=tag;this.children=[];this.value="";this._text="";this.hidden=false;this.style={};this.dataset={};this.listeners=new Map();this.attrs={};this.currentTime=0;this.pauses=0;}
  set textContent(value){this._text=String(value);this.children=[];} get textContent(){return this._text;}
@@ -448,7 +448,7 @@ const context=vm.createContext({URL, console, TextDecoder, crypto:{subtle:{diges
  document:{getElementById:get,createElement:()=>new Element(),hidden:false,addEventListener(){}},
  fetch:async url=>{fetches++;if(url!=="data/index.json")return {ok:false};return {ok:true,headers:{get:()=>""},arrayBuffer:async()=>Uint8Array.from(Buffer.from(JSON.stringify({schema_version:"l3-index-v2",runs:[],groups:[],round_selections:[]}))).buffer};},
  setInterval(){}});
-vm.runInContext(fs.readFileSync(process.argv[1],"utf8"),context);
+vm.runInContext((fs.readFileSync(require("path").join(require("path").dirname(process.argv[1]),"api-cost.js"),"utf8")+"\n"+fs.readFileSync(process.argv[1],"utf8")),context);
 const ep=(task,variant="standard",scene=0,capability="Open")=>({task,variant,seed:0,scene,capability});
 const run=(id,episode,selection,expected,score=0)=>({
  run_id:id,episode,selection:{id:selection,expected_episodes:expected},
@@ -626,6 +626,39 @@ const rows=(g,round="all")=>{
  assert.equal(vm.runInContext("tokenText(costsFor({run_ids:[]}))",context),"—");
  assert.equal(vm.runInContext("costNote(costsFor({run_ids:[]}))",context),"暂无已发布用量");
  assert.equal(vm.runInContext("tokenText({run_count:0,total_tokens:0})",context),"—");
+''')
+
+    def test_api_cost_uses_current_membership_and_assigns_invalid_attempts_once(self):
+        self.run_mapping_check(r'''
+ const cost=(input,cached,output)=>({accounting:"known",input_tokens:input,cached_input_tokens:cached,output_tokens:output,known_token_lower_bound:input+output,paid_requests:1,
+   attempts:[{attempt_id:"0",usage_known:true,input_tokens:input,cached_input_tokens:cached,output_tokens:output,model_responses:1,paid_requests:1}]});
+ const a=run("replacement",ep("imitate", "standard",55),"low",undefined),b=run("other",ep("task"),"low",undefined);
+ a.costs=cost(10000,8000,100);b.costs=cost(20000,18000,200);
+ const g=group("low",[],["replacement","other","replacement"]);g.metrics={completed:2,expected:336};
+ g.rounds=[{round:5,run_ids:["replacement"],metrics:{completed:1}},{round:6,run_ids:["other"],metrics:{completed:1}}];
+ g.prior_invalid_attempt_costs=[{run_id:"invalid1",...cost(3000,2000,30)},{run_id:"invalid2",...cost(5000,4000,50)}];
+ install([a,b],[g]);context.g=g;context.fixture.authorized_episode_substitutions=[{selection_id:"low",selected_run_id:"replacement",round:5,previous_invalid_attempt_ids:["invalid1","invalid2"]}];
+ const original=JSON.stringify(context.fixture);
+ let c=JSON.parse(JSON.stringify(vm.runInContext("costsFor(g)",context)));
+ assert.equal(c.run_count,2);assert.equal(c.extra_attempt_runs,2);assert.equal(c.known_token_lower_bound,38380);
+ assert.equal(vm.runInContext("costsFor(g.rounds[0]).extra_attempt_runs",context),2);
+ assert.equal(vm.runInContext("costsFor(g.rounds[1]).extra_attempt_runs",context),0);
+ let api=JSON.parse(JSON.stringify(vm.runInContext("apiCostsFor(g)",context)));
+ assert.equal(api.run_count,2);assert(Math.abs(api.avg_optimistic_min-.0285)<1e-10);
+ assert(vm.runInContext("apiCostsFor(g)===apiCostsFor(g)",context),"Unchanged UI interactions reuse the snapshot estimate");
+ assert.equal(vm.runInContext("usd(.003456)",context),"$0.0035");
+ assert.equal(vm.runInContext("usd(.003456,'down')",context),"$0.0034");
+ assert.equal(vm.runInContext("apiReferenceText({avg_observed_min:6.235376,avg_observed_max:6.644466})",context),"$6.23–$6.65");
+ assert.notEqual(vm.runInContext("apiReferenceText({avg_observed_min:.0011,avg_observed_max:.0022})",context),"$0.00");
+ vm.runInContext("renderTokenSummary(g,null)",context);
+ const text=e=>[e.textContent,...e.children.map(text)].join(" ");
+ assert.match(text(get("token-summary")),/实测缓存 API/);assert.match(text(get("token-summary")),/全缓存乐观下界/);assert.match(text(get("token-summary")),/分母不增加/);
+ assert.equal(JSON.stringify(context.fixture),original,"Price projection cannot alter raw data, scores or costs");
+ const next=run("new",ep("next"),"low",undefined);next.costs=cost(10000,9000,100);
+ g.run_ids.push("new");context.fixture.runs.push(next);
+ api=JSON.parse(JSON.stringify(vm.runInContext("apiCostsFor(g)",context)));
+ assert.equal(api.run_count,3);assert(Math.abs(api.avg_optimistic_min-.024)<1e-10);
+ assert.equal(vm.runInContext("apiCostsFor({run_ids:[]}).avg_observed_min",context),null);
 ''')
 
     def test_open_membership_and_token_total_preserve_unknown(self):

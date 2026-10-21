@@ -25,6 +25,10 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_api.py' -v
       - name: Verify fixed evaluation selection and scoring
         run: python3 -m unittest discover -s scripts -p 'test_evaluation_scores.py' -v
+      - name: Verify API cost assumptions and dashboard interactions
+        run: |
+          node scripts/test_api_cost.js
+          NODE_BINARY=node python3 -m unittest discover -s scripts -p 'test_dashboard_ui.py' -v
       - name: Build complete public data API from this snapshot
         run: python3 scripts/build_api.py web
       - uses: actions/configure-pages@v5

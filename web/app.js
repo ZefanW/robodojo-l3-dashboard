@@ -11,9 +11,9 @@ let ledger = {runs:[],groups:[]};
 const coverage = m => m.expected == null ? String(m.completed) : m.completed+" / "+m.expected;
 const number = (n, decimals=0) => typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("en-US",{maximumFractionDigits:decimals}) : "未知";
 // Recomputed from the current catalog on every refresh, with each run counted once.
-function runCosts(ids){
+function runCosts(ids,extra=[]){
   const wanted=new Set(ids), rows=[...new Map(ledger.runs.filter(r=>wanted.has(r.run_id)).map(r=>[r.run_id,r])).values()];
-  const costs=rows.map(r=>r.costs), complete=costs.every(c=>c?.accounting==="known");
+  const costs=[...rows.map(r=>r.costs),...extra], complete=costs.every(c=>c?.accounting==="known");
   const sum=k=>costs.reduce((n,c)=>n+(c?.[k]||0),0);
   const knownPart=k=>costs.reduce((n,c)=>n+(typeof c?.[k]==="number"?c[k]:(c?.attempts||[]).reduce((v,a)=>v+(typeof a[k]==="number"?a[k]:0),0)),0);
   const input=knownPart("input_tokens"),output=knownPart("output_tokens"),cached=knownPart("cached_input_tokens");
@@ -23,9 +23,71 @@ function runCosts(ids){
     known_token_lower_bound:sum("known_token_lower_bound"),
     paid_requests:costs.every(c=>typeof c?.paid_requests==="number")?sum("paid_requests"):null,
     unknown_usage_attempts:costs.reduce((n,c)=>n+(c?.attempts||[]).filter(a=>!a.usage_known).length,0),
+    extra_attempt_runs:extra.length,
+    declared_usage_runs:costs.filter(c=>c?.receipt_identity_verified===false).length,
     incomplete_cost_runs:costs.filter(c=>c?.accounting!=="known").length};
 }
-const costsFor = g => runCosts(g.run_ids||[]);
+function priorCostsFor(scope){
+  const group=scope.group_id?scope:ledger.groups.find(g=>(g.rounds||[]).includes(scope));
+  if(!group)return [];
+  const published=new Set(ledger.runs.map(r=>r.run_id)), wanted=new Set(scope.run_ids||[]);
+  const allowed=new Set((ledger.authorized_episode_substitutions||[])
+    .filter(s=>s.selection_id===group.selection_id&&wanted.has(s.selected_run_id))
+    .flatMap(s=>s.previous_invalid_attempt_ids||[]));
+  return [...new Map((group.prior_invalid_attempt_costs||[])
+    .filter(c=>!published.has(c.run_id)&&(scope===group||allowed.has(c.run_id)))
+    .map(c=>[c.run_id,c])).values()];
+}
+const costsFor = g => runCosts(g.run_ids||[],priorCostsFor(g));
+let apiCostCatalog=null,apiCostCache=new WeakMap();
+function apiCostsFor(scope){
+  if(!globalThis.ApiCost)return null;
+  // A fetched catalog is immutable; discard projections when a new snapshot
+  // arrives. The membership stamp also covers incremental fixture/client adds.
+  if(apiCostCatalog!==ledger){apiCostCatalog=ledger;apiCostCache=new WeakMap();}
+  const stamp=(scope.run_ids||[]).join("\0")+":"+ledger.runs.length,cached=apiCostCache.get(scope);
+  if(cached?.stamp===stamp)return cached.value;
+  const wanted=new Set(scope.run_ids||[]), rows=[...new Map(ledger.runs.filter(r=>wanted.has(r.run_id)).map(r=>[r.run_id,r])).values()];
+  const owner=scope.group_id?scope:ledger.groups.find(g=>(g.rounds||[]).includes(scope));
+  const extra=priorCostsFor(scope);
+  const value={...ApiCost.estimate([...rows.map(r=>({run_id:r.run_id,model:r.model,costs:r.costs})),
+    ...extra.map(c=>({run_id:c.run_id,model:owner?.model,costs:c}))],rows.length),extra_attempt_runs:extra.length,run_count:rows.length};
+  apiCostCache.set(scope,{stamp,value});return value;
+}
+function usd(v,direction="round"){
+  if(typeof v!=="number"||!Number.isFinite(v)||v<0)return "—";
+  if(v>0&&v<1e-8)return "<$0.00000001";
+  const digits=v>0&&v<.01?Math.min(8,Math.ceil(-Math.log10(v))+1):2;
+  const scale=10**digits;
+  if(direction==="down")v=Math.floor(v*scale)/scale;
+  if(direction==="up")v=Math.ceil(v*scale)/scale;
+  return "$"+v.toLocaleString("en-US",{minimumFractionDigits:digits,maximumFractionDigits:digits});
+}
+function apiReferenceText(c){
+  if(!c||c.avg_observed_min==null)return "—";
+  const lo=usd(c.avg_observed_min,"down"),hi=usd(c.avg_observed_max,"up");
+  return (c.partial?"已知部分 ":"")+(lo===hi?lo:lo+"–"+hi);
+}
+function appendApiCosts(host,scope,compact=false){
+  const c=apiCostsFor(scope),box=make(compact?"span":"div",undefined,compact?"card-api-cost":"api-cost-summary");
+  const reference=make("span"),floor=make("span");
+  reference.append(make("span","实测缓存 API / 例"),make("b",apiReferenceText(c)));
+  floor.append(make("span","全缓存乐观下界 / 例"),make("b",usd(c?.avg_optimistic_min,"down")));
+  box.append(reference,floor);
+  box.title="美元，按已发布样本数算术平均。沿用实测缓存命中量；区间反映缓存写入量及部分请求长度未知。全缓存下界忽略首次与新输入费用，不是可实现的理想成本。";
+  if(!compact){
+    const notes=["Standard API 价格 · 2026-10-21 · 当前 "+(c?.run_count||0)+" 例"];
+    if(c?.extra_attempt_runs)notes.push("含 "+c.extra_attempt_runs+" 次未计分尝试，分母不增加");
+    if(c?.partial)notes.push("仅已知用量；未知用量不按零计，区间上端不是完整成本上界");
+    if(c?.unknown_attempts)notes.push(c.unknown_attempts+" 次用量未知");
+    if(c?.long_context_ambiguous_attempts)notes.push("部分记录合并多次响应，长上下文费用保留区间");
+    if(c?.receipt_flags?.length)notes.push("含补件声明用量");
+    if(c?.unknown_model_entries)notes.push("部分模型暂无价格映射");
+    box.append(make("p",notes.join(" · "),"small"));
+    const link=make("a","计价假设与论文说明 ↗");link.href="api-cost-method.html";link.target="_blank";link.rel="noopener noreferrer";box.append(link);
+  }
+  host.append(box);
+}
 const tokenText = (c,field="total_tokens",average=false) => {
   if(c.run_count===0)return "—";
   const lower={total_tokens:"known_token_lower_bound",input_tokens:"known_input_tokens",output_tokens:"known_output_tokens",cached_input_tokens:"known_cached_input_tokens"};
@@ -33,11 +95,11 @@ const tokenText = (c,field="total_tokens",average=false) => {
   const displayed=average?(missing?Math.floor(value/c.run_count*10)/10:value/c.run_count):value;
   return (missing?"≥ ":"")+number(displayed,average?1:0);
 };
-const costNote = c => c.run_count === 0 ? "暂无已发布用量" : "付费请求 "+number(c.paid_requests)+(c.unknown_usage_attempts?" · "+number(c.unknown_usage_attempts)+" 次用量未知":c.incomplete_cost_runs?" · "+number(c.incomplete_cost_runs)+" 条账目不完整":" · 用量完整");
+const costNote = c => c.run_count === 0 ? "暂无已发布用量" : "付费请求 "+number(c.paid_requests)+(c.unknown_usage_attempts?" · "+number(c.unknown_usage_attempts)+" 次用量未知":c.incomplete_cost_runs?" · "+number(c.incomplete_cost_runs)+" 条账目不完整":" · 已记录用量完整")+(c.extra_attempt_runs?" · 含 "+c.extra_attempt_runs+" 次未计分尝试":"")+(c.declared_usage_runs?" · 含补件声明用量":"");
 function tokenLines(c,average=false){return ["输入 "+tokenText(c,"input_tokens",average),"输出 "+tokenText(c,"output_tokens",average),"合计 "+tokenText(c,"total_tokens",average)].join("\n");}
 function renderTokenSummary(g,round){
   const host=byId("token-summary");if(!host)return;host.replaceChildren();
-  host.append(make("h3","Token 用量"),make("p","随新结果自动更新 · 只统计已发布的 run","small"));
+  host.append(make("h3","Token 与 API 成本估算"),make("p","随新结果自动更新 · 已发布 run 及明确归属的历史失败尝试 · 平均值分母为已发布结果数","small"));
   const grid=make("div",undefined,"token-scopes");
   for(const [label,scope] of [...(round?[["本轮 R"+round.round,round]]:[]),["整个实验",g]]){
     const c=costsFor(scope),section=make("section",undefined,"token-scope");
@@ -46,7 +108,7 @@ function renderTokenSummary(g,round){
     for(const [field,title] of [["input_tokens","输入"],["output_tokens","输出"],["total_tokens","合计"]]){
       const cell=make("div");cell.append(make("span",title),make("strong",tokenText(c,field)),make("small","平均 / run "+tokenText(c,field,true)));values.append(cell);
     }
-    section.append(values,make("p","输入中缓存 "+tokenText(c,"cached_input_tokens")+" · "+costNote(c),"small"));grid.append(section);
+    section.append(values,make("p","输入中缓存 "+tokenText(c,"cached_input_tokens")+" · "+costNote(c),"small"));appendApiCosts(section,scope);grid.append(section);
   }
   host.append(grid);
 }
@@ -492,6 +554,7 @@ function renderExperimentSummary(button,g){
   const c=costsFor(g),tokens=make("span",undefined,"card-tokens");
   for(const [label,value] of [["平均输入 / run",tokenText(c,"input_tokens",true)],["平均输出 / run",tokenText(c,"output_tokens",true)],["平均合计 / run",tokenText(c,"total_tokens",true)]]){const row=make("span");row.append(make("span",label),make("b",value));tokens.append(row);}
   button.append(tokens,make("span",costNote(c),"card-stat-note"));
+  appendApiCosts(button,g,true);
   button.append(stats,make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 轮间波动","card-stat-note"),make("span",value.basis,"card-stat-note"));
   const divisions=make("span",undefined,"card-capabilities");
   const names={Generalization:"泛化",Precision:"精细操作","Long-Horizon":"长程",Memory:"记忆",Open:"开放"};

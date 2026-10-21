@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="RoboDojo L3看板API均价参考区间与全缓存乐观下界的计算方法、价格来源和证据边界。">
+  <title>API 成本估算方法 · RoboDojo L3</title>
+  <style>
+    :root{color-scheme:light;--ink:#20312f;--muted:#60716e;--line:#dce5e1;--accent:#176d59;--paper:#fff;--wash:#f4f7f4;--tint:#e9f4ee}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--wash);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.8;font-size:16px}
+    a{color:var(--accent);text-underline-offset:3px}a:hover{text-decoration-thickness:2px}a:focus-visible{outline:3px solid #8ccdb0;outline-offset:4px}
+    main{width:min(1040px,calc(100% - 40px));margin:32px auto 64px}header{padding:12px 0 28px}.back{font-size:14px}.eyebrow{color:var(--accent);font-size:13px;letter-spacing:.07em;margin:28px 0 7px;font-weight:700}
+    h1{font-size:clamp(30px,5vw,44px);line-height:1.25;letter-spacing:-.03em;margin:0 0 18px}h2{font-size:23px;line-height:1.5;margin:0 0 14px}h3{font-size:18px;margin:0 0 10px}p{margin:10px 0}.lede{font-size:18px;max-width:820px}.meta,.small{color:var(--muted);font-size:14px}.meta{margin-top:14px}
+    nav{display:flex;gap:10px 20px;flex-wrap:wrap;padding:16px 0 20px;font-size:14px}section{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:28px 32px;margin:18px 0;scroll-margin-top:20px}
+    .metrics{display:grid;grid-template-columns:1fr 1fr;gap:18px}.metric{padding:23px;background:var(--tint);border-radius:12px}.number{display:block;color:var(--accent);font-size:13px;font-weight:700;letter-spacing:.06em;margin-bottom:8px}.metric p{margin-bottom:0}
+    .note{border-left:4px solid var(--accent);padding:10px 16px;background:var(--tint);margin:18px 0}.table-wrap{overflow-x:auto;margin:18px 0}table{border-collapse:collapse;width:100%;font-size:15px}th,td{text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}th{background:var(--wash);font-weight:600}th:first-child,td:first-child{text-align:left}
+    .formula{background:var(--wash);border:1px solid var(--line);border-radius:10px;padding:17px 20px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.9;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;margin:18px 0}code{font-size:.9em;overflow-wrap:anywhere}ul{padding-left:1.4em;margin:12px 0}li{padding-left:3px;margin:10px 0}.paper{margin:0;padding:0;border:0;user-select:text}.sources{font-size:15px}.sources li{margin:7px 0}footer{color:var(--muted);font-size:14px;padding:8px 4px}
+    @media(max-width:680px){main{width:calc(100% - 28px);margin-top:20px}header{padding-bottom:14px}section{padding:22px 19px;border-radius:12px}.metrics{grid-template-columns:1fr}.metric{padding:20px}h2{font-size:21px}.formula{padding:14px;font-size:13px}nav{gap:8px 16px}th,td{padding:10px}}
+    @media print{body{background:#fff;font-size:11pt}main{width:100%;margin:0}header{padding:0}nav,.back{display:none}section{border:0;padding:15px 0;margin:0;border-radius:0}.metrics{gap:12px}.metric{border:1px solid var(--line)}h2,h3{break-after:avoid}.formula,table,.note{break-inside:avoid}a{color:inherit}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <a class="back" href="index.html">← 返回实验看板</a>
+    <p class="eyebrow">ROBODOJO L3 · 统计方法</p>
+    <h1>API 成本估算方法</h1>
+    <p class="lede">把已记录的模型用量换算到统一的 API 价格口径，分别展示实测缓存下的价格参考区间，以及全部输入按缓存价计费的乐观下界。</p>
+    <p class="meta">价格核对：2026-10-21 · 单位：美元 / 已发布结果样本 · Standard API 价格</p>
+    <p class="small">两项指标都是估算，不代表 Codex 订阅账单、账号额度消耗或真实扣款。</p>
+    <nav aria-label="本页目录"><a href="#metrics">两个指标</a><a href="#prices">价格与长度</a><a href="#measured">参考区间</a><a href="#optimistic">乐观下界</a><a href="#scope">范围与证据</a><a href="#paper">论文表述</a><a href="#sources">官方来源</a></nav>
+  </header>
+
+  <section id="metrics" aria-labelledby="metrics-title">
+    <h2 id="metrics-title">两个指标，使用相同的样本范围</h2>
+    <div class="metrics">
+      <article class="metric"><span class="number">指标 01</span><h3>实测缓存 API 均价</h3><p>沿用已记录的输入、输出和实际缓存命中量。缓存写入量未保存，因此给出普通输入价至30分钟写入价的参考区间。</p><p class="small">是实测用量的API价格重估，不是已核对的实际账单。</p></article>
+      <article class="metric"><span class="number">指标 02</span><h3>全缓存乐观下界</h3><p>把全部输入按缓存读取价计费，输出仍按输出价计费；忽略首次输入、新增输入和写入缓存的额外成本。</p><p class="small">不代表所有输入真的可缓存，也不等于“所有可缓存输入都命中”。</p></article>
+    </div>
+    <p>两者只改变价格假设，不改变模型调用次数、实验结果或原始 token 记录。</p>
+  </section>
+
+  <section id="prices" aria-labelledby="prices-title">
+    <h2 id="prices-title">单价与请求长度</h2>
+    <p>以下为 Standard API 的短请求单价，单位为美元 / 100万 tokens。模型身份分别计价，不因同一实验而套用统一模型价格。</p>
+    <div class="table-wrap"><table><caption class="small">单次请求输入不超过272,000 tokens时</caption><thead><tr><th scope="col">模型 ID</th><th scope="col">普通输入 pI</th><th scope="col">缓存读取 pC</th><th scope="col">30分钟写入 pW</th><th scope="col">输出 pO</th></tr></thead><tbody><tr><th scope="row">gpt-6-astra</th><td>$10.00</td><td>$1.00</td><td>$12.50</td><td>$50.00</td></tr><tr><th scope="row">gpt-5.6-luna</th><td>$0.20</td><td>$0.02</td><td>$0.25</td><td>$1.20</td></tr></tbody></table></div>
+    <p>单次请求输入<strong>超过272,000 tokens</strong>时，整次请求的普通输入、缓存读取、缓存写入单价乘以2，输出单价乘以1.5。阈值按请求判断，不能直接使用整个episode或多个模型响应的累计输入。<a href="https://developers.openai.com/api/docs/models/gpt-6-astra">Astra说明</a> · <a href="https://developers.openai.com/api/docs/models/gpt-5.6-luna">Luna说明</a> · <a href="https://developers.openai.com/api/docs/pricing">API价格表</a></p>
+    <p class="small">不使用Batch、Flex、Fast等其他速度档位；不包括12小时缓存写入、区域附加费、税、工具调用、GPU、仿真或存储费用。采用核对日单价，不追溯还原运行当日的合同或促销价格。</p>
+  </section>
+
+  <section id="measured" aria-labelledby="measured-title">
+    <h2 id="measured-title">指标一：实测缓存 API 均价</h2>
+    <p>对每条可归属的用量记录 <strong>j</strong>，总输入为 <strong>Ij</strong>，实际缓存读取为 <strong>Cj</strong>，输出为 <strong>Oj</strong>，未命中部分为 <strong>Uj = Ij − Cj</strong>。缓存读取属于输入，不再额外加到输入上。</p>
+    <p>完整输入费用需要区分普通输入、缓存读取和缓存写入；写入与读取不重叠。当前公开历史记录没有保存足够的 <code>cache_write_tokens</code>，因此不虚构写入量。30分钟写入单价为普通输入价的1.25倍。<a href="https://developers.openai.com/api/docs/guides/prompt-caching">官方缓存计费说明</a></p>
+    <pre class="formula" aria-label="实测缓存参考区间公式">参考下端 Lj = (Uj × pI + Cj × pC + Oj × pO) / 1,000,000
+参考上端 Hj = (Uj × pW + Cj × pC + Oj × pO) / 1,000,000
+平均参考区间 = [Σ Lj / N, Σ Hj / N]</pre>
+    <p>下端把未命中部分全部按普通输入价计算；上端把它全部按30分钟写入价计算。同一token不会同时收取这里的普通输入费和写入费。每条记录先应用对应模型与请求长度的单价，再汇总。</p>
+    <p>若一条累计记录包含多个模型响应，累计输入超过272,000，却缺少逐请求分配，不能断言每次请求都进入长上下文档位。此时保留“全部按短请求价”至“全部按长请求价”的保守包络，并提示长度归属不确定。累计输入不超过阈值时，其中各请求也不会超过阈值。</p>
+    <div class="note"><strong>有未知usage时，区间只针对已知部分。</strong>右端不是整个实验实际费用的上界，未知usage不按零补齐。缓存数或输入/输出拆分无法确定时，保留缺失提示，不用总token数猜测费用分区。</div>
+  </section>
+
+  <section id="optimistic" aria-labelledby="optimistic-title">
+    <h2 id="optimistic-title">指标二：全缓存乐观下界</h2>
+    <pre class="formula" aria-label="全缓存乐观下界公式">乐观费用 Bj = (Ij × pC + Oj × pO) / 1,000,000
+平均乐观下界 = Σ Bj / N</pre>
+    <p>全部输入都假设按缓存读取价计费，忽略首次请求、新增输入和缓存写入的额外费用。已知长请求仍使用长上下文倍率；请求长度归属无法判定时，为保持乐观下界采用短请求价。有未知usage时，只累计已知部分。</p>
+    <p><strong>实际缓存命中量不等于理论可缓存量。</strong>实际命中还受请求前缀、路由、时间间隔等影响；首次输入和新增内容也不能仅凭累计usage判为可复用。本指标不从实际Cj推断可缓存前缀，是一种统一、偏乐观的参照，不是优化后必然能够达到的开销。</p>
+  </section>
+
+  <section id="scope" aria-labelledby="scope-title">
+    <h2 id="scope-title">范围、分母与证据</h2>
+    <ul>
+      <li><strong>N是已发布结果样本数。</strong>在当前范围内去重后计算每个样本的算术平均；不是每次API调用均价，也不是任务或能力宏平均。空范围显示“—”。</li>
+      <li><strong>不按计划总数摊薄。</strong>发布1例就除以1，不除以42或111。未完成首轮、Spiky-2或P50_111时不外推全套费用；实验卡片的当前范围也不自动等同固定评测范围。</li>
+      <li><strong>重试和失败留在分子。</strong>包含已记录且归属于该范围的尝试，但不增加结果样本分母。LOW的两个额外无效尝试计费、不参与评分、不增加N，只归属相应范围，不重复加入其他轮次。</li>
+      <li><strong>模型分别计价。</strong>Astra与Luna使用各自单价。多个模型参与同一episode时按已知模型身份分别计算；未知或未映射模型不静默套价。</li>
+      <li><strong>观察和控制都计入。</strong>Generation记录已包含观察模型与控制模型的尝试，不能再次追加一遍观察费用。</li>
+      <li><strong>声明用量保留证据标记。</strong>已接受补件的声明usage可用于估算，但注明“含补件声明用量”。<code>accounting=known</code>不等于收据身份已验证。</li>
+      <li><strong>未知成本保持未知。</strong>不把缺失值当成零；已知部分的参考区间不是完整账单的置信区间。</li>
+    </ul>
+  </section>
+
+  <section id="paper" aria-labelledby="paper-title">
+    <h2 id="paper-title">论文可复用表述</h2>
+    <p class="small">以下段落可复制到方法或成本分析部分；引用时保留核价日期和未知用量边界。</p>
+    <blockquote class="paper"><p>为在统一价格口径下比较推理开销，我们根据已发布结果中的输入、输出及缓存读取token计数，采用2026年10月21日核对的OpenAI Standard API单价，报告两种按结果样本数计算的算术平均成本。第一种为实测缓存API价格参考区间：保留已记录的缓存读取量，将未命中输入分别按普通输入价和30分钟缓存写入价计费，以反映未保存缓存写入计数造成的不确定性；对无法由累计usage确定的长上下文请求归属，进一步保留短、长请求价格包络。第二种为全缓存乐观下界：假设全部输入按缓存读取价计费，输出按输出价计费，忽略首次输入、新增输入及缓存写入的额外开销。该下界不声称所有输入均可缓存，也不以实际缓存命中量替代理论可复用前缀量。成本分子包含范围内已记录的重试和无效尝试，分母仅计已发布的结果样本；这不是能力宏平均，也不对未完成的固定评测集合外推。存在未知usage时仅报告已知部分，参考区间的右端不构成完整实验成本上界；补件声明用量保留其证据标记。这些数值是公开API价格下的估算，不是Codex账单或账号额度度量，也不包含12小时缓存、特殊速度档位、税、工具、GPU或仿真费用。</p></blockquote>
+  </section>
+
+  <section id="sources" aria-labelledby="sources-title">
+    <h2 id="sources-title">官方来源</h2>
+    <p>以下来源于2026-10-21核对。后续价格变化需要更新价格版本，而不是改写原始usage。</p>
+    <ul class="sources"><li><a href="https://developers.openai.com/api/docs/models/gpt-6-astra">GPT-6 Astra：模型、价格与长上下文倍率</a></li><li><a href="https://developers.openai.com/api/docs/models/gpt-5.6-luna">GPT-5.6 Luna：模型、价格与长上下文倍率</a></li><li><a href="https://developers.openai.com/api/docs/guides/prompt-caching">Prompt caching：读取、写入与费用字段</a></li><li><a href="https://developers.openai.com/api/docs/pricing">OpenAI API 价格总表</a></li></ul>
+  </section>
+  <footer>RoboDojo L3 · 成本说明独立于成绩归约；原始用量、结果与证据标记保持不变。</footer>
+</main>
+</body>
+</html>
