@@ -165,6 +165,49 @@ function fixture(groups){
  assert.equal(ui.get("detail-round").options[1].textContent,"R1 · 1 / 1");
 ''')
 
+    def test_completed_sort_persists_and_preserves_active_task_video_and_filters(self):
+        self.run_ui_check(r'''
+ const ui=await boot(),data=fixture([
+  ["low",[record("low1","wanted")]],
+  ["high",[record("high1","wanted"),record("high2","other")]],
+  ["medium",[record("medium1","wanted"),record("medium2","other")]]
+ ]);
+ for(const g of data.groups){g.model.thinking_effort=g.group_id;data.experiment_names={...(data.experiment_names||{}),[g.group_id]:g.group_id};}
+ data.groups[0].metrics.expected=999; // Planned cases must not outrank actual completions.
+ const original=JSON.stringify(data);ui.install(data);
+ const cards=()=>ui.get("experiments").children.map(c=>find(c,e=>e.tag==="strong").textContent);
+ assert.deepEqual(cards(),["low","medium","high"]);
+ ui.evaluate('selectExperiment(ledger.groups[0])');
+ ui.get("search").value="wanted";ui.get("search").emit("input");
+ const video=ui.evaluate('activeVideo'),focus=ui.evaluate('taskFocus'),row=ui.evaluate('selectedRowKey');
+ assert(video);const pauses=video.pauses;
+ ui.get("experiment-sort").value="completed";ui.get("experiment-sort").emit("change");
+ assert.deepEqual(cards(),["medium","high","low"]);
+ assert.deepEqual(ui.get("detail-experiment").options.map(o=>o.value),["medium","high","low"]);
+ assert.equal(ui.get("detail-experiment").value,"low");assert.equal(ui.get("search").value,"wanted");
+ assert.equal(ui.evaluate('activeVideo'),video);assert.equal(video.pauses,pauses);
+ assert.equal(ui.evaluate('taskFocus'),focus);assert.equal(ui.evaluate('selectedRowKey'),row);
+ ui.get("experiment-search").value="high";ui.get("experiment-search").emit("input");assert.deepEqual(cards(),["high"]);
+ ui.get("experiment-sort").value="effort";ui.get("experiment-sort").emit("change");
+ assert.equal(ui.get("experiment-search").value,"high");assert.deepEqual(cards(),["high"]);
+ ui.get("experiment-search").value="";ui.get("experiment-search").emit("input");assert.deepEqual(cards(),["low","medium","high"]);
+ ui.get("experiment-sort").value="completed";ui.get("experiment-sort").emit("change");
+ ui.evaluate('updateGroupPreference(ledger.groups[1],{hidden:true})');assert.deepEqual(cards(),["medium","low"]);
+ const reload=await boot(ui.storage);reload.install(data);
+ assert.equal(reload.get("experiment-sort").value,"completed");
+ assert.deepEqual(reload.get("detail-experiment").options.map(o=>o.value),["medium","low"]);
+ assert.equal(JSON.stringify(data),original,"Sorting and preferences must not mutate the published catalog");
+''')
+
+    def test_completed_sort_with_unavailable_storage_still_works_in_page(self):
+        self.run_ui_check(r'''
+ const storage={getItem(){throw new Error("blocked");},setItem(){throw new Error("blocked");}};
+ const ui=await boot(storage);ui.install(fixture([["a",[record("a1","task")]], ["b",[record("b1","task"),record("b2","other")]]]));
+ ui.get("experiment-sort").value="completed";ui.get("experiment-sort").emit("change");
+ assert.deepEqual(ui.get("detail-experiment").options.map(o=>o.value),["b","a"]);
+ assert.match(ui.get("preferences-status").textContent,/无法持久保存/);
+''')
+
     def test_merged_upload_fields_prefer_primary_source_without_rewriting_originals(self):
         self.run_ui_check(r'''
  const ui=await boot(),data=fixture([["main",[record("pilot","task_a"),record("main_run","task_b")]]]);

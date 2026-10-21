@@ -5,7 +5,7 @@
   <meta name="description" content="RoboDojo L3 实验结果、任务视频与原生执行证据。">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src https:; img-src 'self'; base-uri 'none'; form-action 'none'">
   <title>RoboDojo L3 · 实验与任务</title>
-  <link rel="stylesheet" href="style.css?v=spiky2-65-v1"><script src="app.js?v=spiky2-65-v1" defer></script>
+  <link rel="stylesheet" href="style.css?v=case-count-sort-v1"><script src="app.js?v=case-count-sort-v1" defer></script>
 </head>
 <body>
   <header><a class="brand" href="./"><span class="mark" aria-hidden="true">L3</span> RoboDojo <span>Research results</span></a><span><a href="api/">数据 API</a> · <a href="https://robodojo-benchmark.com/leaderboard" target="_blank" rel="noopener noreferrer">RoboDojo 官网 ↗</a></span></header>
@@ -18,7 +18,7 @@
     <div class="overview"><div class="stats" aria-label="已发布结果"><div><span id="group-count">—</span><p>实验配置</p></div><div><span id="run-count">—</span><p>原生完成并发布</p></div><div><span id="control-count">—</span><p>实际控制步</p></div></div><div id="status" role="status" aria-live="polite">正在加载公开结果…</div></div>
     <section id="official-leaderboard" class="official-leaderboard" aria-labelledby="official-leaderboard-title" hidden></section>
     <details id="upload-status" class="audit" hidden><summary id="upload-summary">上传状态</summary><div id="upload-items"></div></details>
-    <section aria-labelledby="experiments-title"><div class="section-head"><h2 id="experiments-title">选择实验</h2><label class="search">查找实验 <input id="experiment-search" type="search" placeholder="名称、effort 或实验 ID" autocomplete="off"></label></div><div class="group-preferences"><p id="preferences-status" class="small" role="status">实验名称由维护者统一设置；隐藏设置仅在本浏览器保存。</p><button id="show-hidden" type="button" aria-pressed="false">显示隐藏组 (0)</button><button id="restore-hidden" type="button" hidden>恢复全部隐藏组</button></div><div id="experiments" class="experiment-list"></div></section>
+    <section aria-labelledby="experiments-title"><div class="section-head"><h2 id="experiments-title">选择实验</h2><div class="experiment-controls"><label class="search">排序 <select id="experiment-sort" title="按已完成并发布的 case 数量排序"><option value="effort">按 effort（原有顺序）</option><option value="completed">已跑 case 数：多 → 少</option></select></label><label class="search">查找实验 <input id="experiment-search" type="search" placeholder="名称、effort 或实验 ID" autocomplete="off"></label></div></div><div class="group-preferences"><p id="preferences-status" class="small" role="status">实验名称由维护者统一设置；隐藏与排序设置仅在本浏览器保存。</p><button id="show-hidden" type="button" aria-pressed="false">显示隐藏组 (0)</button><button id="restore-hidden" type="button" hidden>恢复全部隐藏组</button></div><div id="experiments" class="experiment-list"></div></section>
     <section id="workspace" hidden>
       <div class="experiment-heading"><div><p class="eyebrow">EXPERIMENT ROLLOUTS</p><h2 id="experiment-title"></h2><p id="experiment-id" class="small"></p></div><div id="experiment-metrics" class="metrics"></div></div>
       <section id="fixed-evaluation-summary" class="fixed-evaluation-summary" aria-label="固定评测成绩"></section>

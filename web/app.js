@@ -332,6 +332,18 @@ function readPreferences(){
   }catch{preferencesPersistent=false;return new Map();}
 }
 const groupPreferences = readPreferences();
+const experimentSortKey = "robodojo-l3.dashboard.experiment-sort.v1";
+let sortPersistent = true;
+function readExperimentSort(){
+  try{return localStorage.getItem(experimentSortKey)==="completed"?"completed":"effort";}
+  catch{sortPersistent=false;return "effort";}
+}
+let experimentSort = readExperimentSort();
+function orderedGroups(groups){
+  const effortOrder=g=>["low","medium","high","xhigh"].indexOf(g.model.thinking_effort);
+  const completed=g=>Number.isFinite(g.metrics?.completed)?g.metrics.completed:0;
+  return [...groups].sort((a,b)=>(experimentSort==="completed"?completed(b)-completed(a):0)||effortOrder(a)-effortOrder(b));
+}
 const preferenceFor = g => groupPreferences.get(g.group_id)||{hidden:false};
 const visibleGroups = () => ledger.groups.filter(g=>!preferenceFor(g).hidden);
 const episodeKey = e => JSON.stringify([e.task,e.variant,e.seed,e.scene]);
@@ -447,7 +459,7 @@ function matchingTask(rows,focus){
 }
 function renderDetailNavigation(g){
   const groups=byId("detail-experiment"),rounds=byId("detail-round");groups.replaceChildren();rounds.replaceChildren();
-  const available=visibleGroups();
+  const available=orderedGroups(visibleGroups());
   for(const item of available){const option=make("option",experimentOptionName(item,available));option.value=item.group_id;groups.append(option);}
   groups.value=g.group_id;
   for(const [value,label] of [["all","全部轮次"],...g.rounds.map(r=>[String(r.round),roundDisplayLabel(g,r)])]){
@@ -494,8 +506,9 @@ function renderExperiments(){
   const hidden=ledger.groups.filter(g=>preferenceFor(g).hidden).length,toggle=byId("show-hidden");
   toggle.textContent=(showHiddenGroups?"收起隐藏组":"显示隐藏组")+" ("+hidden+")";toggle.disabled=!hidden;toggle.setAttribute("aria-pressed",String(showHiddenGroups));
   byId("restore-hidden").hidden=!hidden;
-  byId("preferences-status").textContent=preferencesPersistent?"实验名称由维护者统一设置；隐藏设置仅在本浏览器保存。":"实验名称由维护者统一设置；本浏览器无法持久保存隐藏设置，本次页面内仍有效。";
-  const ordered=[...ledger.groups].sort((a,b)=>["low","medium","high","xhigh"].indexOf(a.model.thinking_effort)-["low","medium","high","xhigh"].indexOf(b.model.thinking_effort));
+  byId("preferences-status").textContent=preferencesPersistent&&sortPersistent?"实验名称由维护者统一设置；隐藏与排序设置仅在本浏览器保存。":"实验名称由维护者统一设置；部分偏好无法持久保存，本次页面内仍有效。";
+  byId("experiment-sort").value=experimentSort;
+  const ordered=orderedGroups(ledger.groups);
   for(const g of ordered.filter(g=>(showHiddenGroups||!preferenceFor(g).hidden)&&[experimentName(g),originalExperimentName(g),g.selection_id,g.protocol.id,g.selection_title].join(" ").toLowerCase().includes(q))){
     const hidden=preferenceFor(g).hidden,card=make("article",undefined,"experiment-card"+(g.group_id===selectedGroupId?" selected":"")+(hidden?" hidden-preview":""));
     const button=make("button",undefined,"experiment-select");button.type="button";
@@ -650,6 +663,11 @@ async function load(){if(loading)return;loading=true;try{
 }finally{loading=false;}}
 for(const id of ["search","variant","outcome"])byId(id).addEventListener(id==="search"?"input":"change",()=>{taskFocus=null;renderRuns();});
 byId("experiment-search").addEventListener("input",renderExperiments);
+byId("experiment-sort").addEventListener("change",event=>{
+  experimentSort=event.target.value==="completed"?"completed":"effort";
+  try{localStorage.setItem(experimentSortKey,experimentSort);sortPersistent=true;}catch{sortPersistent=false;}
+  renderExperiments();const g=selectedGroup();if(g)renderDetailNavigation(g);
+});
 byId("detail-experiment").addEventListener("change",event=>{const g=visibleGroups().find(g=>g.group_id===event.target.value);if(g)selectExperiment(g);});
 byId("detail-round").addEventListener("change",event=>selectRound(event.target.value));
 byId("show-hidden").addEventListener("click",()=>{showHiddenGroups=!showHiddenGroups;renderExperiments();});
