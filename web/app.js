@@ -9,6 +9,8 @@ const points = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2)+"
 const known = v => v === null || v === undefined ? "unknown" : String(v);
 let ledger = {runs:[],groups:[]};
 const coverage = m => m.expected == null ? String(m.completed) : m.completed+" / "+m.expected;
+const isTemporaryReview = g => g?.temporary_review?.schema_version==="l3-temporary-upload-review-v1"
+  &&g.temporary_review.status==="awaiting_user_review"&&g.aggregation_status==="awaiting_user_review";
 const number = (n, decimals=0) => typeof n === "number" && Number.isFinite(n) ? n.toLocaleString("en-US",{maximumFractionDigits:decimals}) : "未知";
 // Recomputed from the current catalog on every refresh, with each run counted once.
 function runCosts(ids,extra=[]){
@@ -101,7 +103,7 @@ function renderTokenSummary(g,round){
   const host=byId("token-summary");if(!host)return;host.replaceChildren();
   host.append(make("h3","Token 与 API 成本估算"),make("p","随新结果自动更新 · 已发布 run 及明确归属的历史失败尝试 · 平均值分母为已发布结果数","small"));
   const grid=make("div",undefined,"token-scopes");
-  for(const [label,scope] of [...(round?[["本轮 R"+round.round,round]]:[]),["整个实验",g]]){
+  for(const [label,scope] of [...(round?[["本轮 R"+round.round,round]]:[]),[isTemporaryReview(g)?"待核查批次":"整个实验",g]]){
     const c=costsFor(scope),section=make("section",undefined,"token-scope");
     section.append(make("h4",label+" · "+c.run_count+" 个已发布 run"));
     const values=make("div",undefined,"token-values");
@@ -129,6 +131,7 @@ function fixedResultStatus(result,expected){
   return count+" / "+expected+" · "+(result.conflicts?.length?"结果待核对":"尚未齐全");
 }
 function renderFixedScores(host,g,compact=false){
+  if(isTemporaryReview(g)){host.append(make(compact?"span":"p","待核查批次 · 暂不汇总成绩","small"));return;}
   const grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
   for(const [id,label,expected] of fixedPlans){
     const result=fixedResult(g,id),complete=fixedResultComplete(result,expected);
@@ -141,6 +144,7 @@ function renderFixedScores(host,g,compact=false){
 const fixedCaseLabel=c=>c.task+" · "+c.variant+" · seed "+c.seed+" / scene "+c.scene;
 function renderFixedEvaluationSummary(g){
   const host=byId("fixed-evaluation-summary");if(!host)return;host.replaceChildren();
+  if(isTemporaryReview(g)){host.append(make("h3","待核查批次"),make("p","逐条核查原始结果、视频与动作记录后再决定是否合并；当前不声明完整评测或汇总成绩。","small"));return;}
   host.append(make("h3","固定评测成绩"),make("p","按固定场景顺序统计，样本齐全后自动发布；不随下方轮次筛选改变。","small"));
   renderFixedScores(host,g);
   const details=make("details",undefined,"fixed-score-details");details.append(make("summary","统计规则与待补结果"));
@@ -410,6 +414,7 @@ const preferenceFor = g => groupPreferences.get(g.group_id)||{hidden:false};
 const visibleGroups = () => ledger.groups.filter(g=>!preferenceFor(g).hidden);
 const episodeKey = e => JSON.stringify([e.task,e.variant,e.seed,e.scene]);
 const rowKey = row => JSON.stringify([row.round,episodeKey(row.episode)]);
+const rowScopeLabel = row => row.temporary_review===true?"待核查批次":"R"+row.round;
 const originalExperimentName = g => g.model.name + " · " + g.protocol.profile + " · " + g.model.thinking_effort;
 // Maintainer-owned catalog contract: experiment_names maps exact group_id to a
 // shared display string. It never changes membership or original protocol IDs.
@@ -424,7 +429,7 @@ function experimentOptionName(g,groups){
   const suffix=duplicates.filter(item=>item.selection_id===g.selection_id).length>1?g.selection_id+" · "+g.group_id:g.selection_id;
   return name+" · "+suffix;
 }
-const groupLabel = g => (ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
+const groupLabel = g => isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
 function updateGroupPreference(g,change){
   const next={hidden:typeof change.hidden==="boolean"?change.hidden:preferenceFor(g).hidden};
   if(next.hidden)groupPreferences.set(g.group_id,next);else groupPreferences.delete(g.group_id);
@@ -436,7 +441,8 @@ function ensureVisibleSelection(){
   if(selectedGroup()&&!preferenceFor(selectedGroup()).hidden)return;
   const next=[...visibleGroups()].sort((a,b)=>b.metrics.completed-a.metrics.completed)[0];
   clearDetail();selectedGroupId=next?.group_id||null;
-  if(next&&selectedRound!=="all"&&!next.rounds.some(r=>String(r.round)===selectedRound))selectedRound=String(next.rounds[0]?.round||1);
+  if(isTemporaryReview(next))selectedRound="all";
+  else if(next&&selectedRound!=="all"&&!next.rounds.some(r=>String(r.round)===selectedRound))selectedRound=String(next.rounds[0]?.round||1);
 }
 function renderGroupSettings(card,g){
   const settings=make("details",undefined,"group-settings"),summary=make("summary","显示设置");
@@ -479,6 +485,13 @@ const outcomeLabel = row => row.runs.length>1?"结果待核对":!row.runs.length
 const outcomeClass = row => row.runs.length!==1?"pending":row.runs[0].outcome.success===true?"success":row.runs[0].outcome.success===false?"failure":"pending";
 function experimentRows(g, roundNumber){
   const groupIds=new Set(g.run_ids), members=ledger.runs.filter(r=>groupIds.has(r.run_id));
+  if(isTemporaryReview(g)){
+    // Inspection membership is the exact published run list, not an inferred
+    // round plan. Preserve each original episode and its ordinary evidence UI.
+    if(groupIds.size!==g.run_ids.length||members.length!==groupIds.size||new Set(members.map(r=>r.run_id)).size!==members.length)throw new Error("Invalid temporary review membership");
+    return members.map(run=>({episode:run.episode,round:null,temporary_review:true,runs:[run]}))
+      .sort((a,b)=>a.episode.task.localeCompare(b.episode.task)||a.episode.variant.localeCompare(b.episode.variant)||a.episode.seed-b.episode.seed||a.episode.scene-b.episode.scene);
+  }
   // A group may combine immutable source selections under a fixed display plan.
   const displaySelection=g.display_round_selection;
   if(displaySelection&&(displaySelection.schema_version!=="l3-group-display-round-selection-v1"||!Array.isArray(displaySelection.rounds)))throw new Error("Invalid group display selection");
@@ -505,7 +518,8 @@ function clearDetail(){detailGeneration++;releaseVideo();selectedRowKey=null;sel
 function selectExperiment(g){
   if(selectedGroupId===g.group_id||preferenceFor(g).hidden)return;
   clearDetail();selectedGroupId=g.group_id;
-  if(selectedRound!=="all"&&!g.rounds.some(r=>String(r.round)===selectedRound))selectedRound=String(g.rounds[0]?.round||1);
+  if(isTemporaryReview(g))selectedRound="all";
+  else if(selectedRound!=="all"&&!g.rounds.some(r=>String(r.round)===selectedRound))selectedRound=String(g.rounds[0]?.round||1);
   renderExperiments();renderExperiment();
 }
 function selectRound(value){
@@ -524,7 +538,7 @@ function renderDetailNavigation(g){
   const available=orderedGroups(visibleGroups());
   for(const item of available){const option=make("option",experimentOptionName(item,available));option.value=item.group_id;groups.append(option);}
   groups.value=g.group_id;
-  for(const [value,label] of [["all","全部轮次"],...g.rounds.map(r=>[String(r.round),roundDisplayLabel(g,r)])]){
+  for(const [value,label] of [["all",isTemporaryReview(g)?"待核查批次":"全部轮次"],...g.rounds.map(r=>[String(r.round),roundDisplayLabel(g,r)])]){
     const option=make("option",label);option.value=value;rounds.append(option);
   }
   rounds.value=selectedRound;
@@ -543,19 +557,21 @@ function experimentSummary(g){
     const value=ambiguous?null:multiple?(n&&values.every(finite)?values.reduce((a,b)=>a+b,0)/n:null):dimension.observed_score;
     return {name,score:value,completed:dimension.completed||0,expected:dimension.expected};
   });
-  return {score,sr,stddev,n,capabilities,basis:ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?(g.display_round_selection?.plan_id==="P50_111"?"完整 P50_111":"完整第一轮"):"当前已发布部分，非最终成绩"};
+  return {score,sr,stddev,n,capabilities,basis:isTemporaryReview(g)?"待核查批次，暂不合并或汇总":ambiguous?"结果有重叠，成绩暂不归约":multiple?"仅完整轮等权均值":g.aggregation_status==="complete"?(g.display_round_selection?.plan_id==="P50_111"?"完整 P50_111":"完整第一轮"):"当前已发布部分，非最终成绩"};
 }
 function renderExperimentSummary(button,g){
   renderFixedScores(button,g,true);
   const value=experimentSummary(g),stats=make("span",undefined,"card-stats");
-  for(const [text,label] of [[pct(value.score),"已发布轮次汇总 Score"],[points(value.stddev),"Score 标准差"]]){
+  for(const [text,label] of (isTemporaryReview(g)?[["—","批次成绩待核查"]]:[[pct(value.score),"已发布轮次汇总 Score"],[points(value.stddev),"Score 标准差"]])){
     const item=make("span",undefined,"card-stat");item.append(make("b",text),make("span",label));stats.append(item);
   }
   const c=costsFor(g),tokens=make("span",undefined,"card-tokens");
   for(const [label,value] of [["平均输入 / run",tokenText(c,"input_tokens",true)],["平均输出 / run",tokenText(c,"output_tokens",true)],["平均合计 / run",tokenText(c,"total_tokens",true)]]){const row=make("span");row.append(make("span",label),make("b",value));tokens.append(row);}
   button.append(tokens,make("span",costNote(c),"card-stat-note"));
   appendApiCosts(button,g,true);
-  button.append(stats,make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 轮间波动","card-stat-note"),make("span",value.basis,"card-stat-note"));
+  button.append(stats);
+  if(!isTemporaryReview(g))button.append(make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 轮间波动","card-stat-note"));
+  button.append(make("span",value.basis,"card-stat-note"));
   const divisions=make("span",undefined,"card-capabilities");
   const names={Generalization:"泛化",Precision:"精细操作","Long-Horizon":"长程",Memory:"记忆",Open:"开放"};
   for(const item of value.capabilities){
@@ -577,7 +593,7 @@ function renderExperiments(){
     const button=make("button",undefined,"experiment-select");button.type="button";
     button.disabled=hidden;
     button.setAttribute("aria-pressed",String(g.group_id===selectedGroupId));button.setAttribute("aria-label",experimentName(g));
-    button.append(make("span",g.model.thinking_effort.toUpperCase()+(hidden?" · 已隐藏":""),"effort"),make("span","实验名称","card-label"),make("strong",experimentName(g)),make("span",g.model.name+" · 原始 profile："+g.protocol.profile,"small"),make("span",coverage(g.metrics)+" 已发布 · "+(g.rounds||[]).length+" 轮","card-coverage"));
+    button.append(make("span",g.model.thinking_effort.toUpperCase()+(hidden?" · 已隐藏":""),"effort"),make("span","实验名称","card-label"),make("strong",experimentName(g)),make("span",g.model.name+" · 原始 profile："+g.protocol.profile,"small"),make("span",coverage(g.metrics)+" 已发布 · "+(isTemporaryReview(g)?"待核查批次":(g.rounds||[]).length+" 轮"),"card-coverage"));
     renderExperimentSummary(button,g);button.append(make("span",groupLabel(g)+" · "+g.selection_id,"experiment-id"));
     button.addEventListener("click",()=>selectExperiment(g));card.append(button);renderGroupSettings(card,g);renderUploadFooter(card,g);host.append(card);
   }
@@ -589,7 +605,7 @@ function renderExperiment(){
   byId("experiment-id").textContent="原始 profile："+g.protocol.profile+" · "+groupLabel(g)+"："+g.selection_id;
   renderDetailNavigation(g);renderFixedEvaluationSummary(g);
   const rounds=byId("round-tabs");rounds.replaceChildren();
-  for(const [value,label] of [["all","全部轮次"],...(g.rounds||[]).map(r=>[String(r.round),roundDisplayLabel(g,r)])]){
+  for(const [value,label] of [["all",isTemporaryReview(g)?"待核查批次":"全部轮次"],...(g.rounds||[]).map(r=>[String(r.round),roundDisplayLabel(g,r)])]){
     if(value==="all"&&g.rounds.length===1)continue;
     const b=make("button",label,"pill"+(selectedRound===value?" active":""));b.type="button";b.setAttribute("aria-pressed",String(selectedRound===value));
     b.addEventListener("click",()=>selectRound(value));rounds.append(b);
@@ -597,12 +613,12 @@ function renderExperiment(){
   const round=g.rounds.find(r=>String(r.round)===selectedRound),m=round?round.metrics:g.metrics;
   const isComplete=round?round.status==="complete":g.aggregation_status==="complete";
   const metrics=byId("experiment-metrics");metrics.replaceChildren();
-  for(const [value,label] of [[coverage(m),"当前范围已发布"],[pct(m.score),round?"本轮 Score":"所有轮次 Score"],[pct(m.success_rate),"当前范围 SR"]]){
+  for(const [value,label] of [[coverage(m),"当前范围已发布"],[pct(m.score),isTemporaryReview(g)?"批次汇总 Score":round?"本轮 Score":"所有轮次 Score"],[pct(m.success_rate),"当前范围 SR"]]){
     const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
   }
   renderTokenSummary(g,round);
   if(byId("cost-note"))byId("cost-note").textContent="平均 / run = 本范围 token 总量 ÷ 已发布 run 数，含失败和重试；缓存已包含在输入中。≥ 表示用量有缺失、这里只显示已知下界。运行中或尚未上传的开销不在此表。";
-  byId("round-config").textContent=round?roundConfiguration(round):"各轮的 seed、scene 和 variant 按原始轮次定义分别列出。";
+  byId("round-config").textContent=isTemporaryReview(g)?"按原始 task / variant / seed / scene 逐条核查，不声明实验轮次。":round?roundConfiguration(round):"各轮的 seed、scene 和 variant 按原始轮次定义分别列出。";
   byId("coverage-note").textContent=m.expected==null?"总量未设定，按已上传样本展示；不声明完整轮或最终成绩。":isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
   if(!isComplete && typeof m.observed_score==="number")byId("coverage-note").textContent+=" 已发布部分 Score "+pct(m.observed_score)+" / SR "+pct(m.observed_success_rate)+"。";
   renderAudit(g);renderCapabilities();renderRuns();
@@ -642,7 +658,7 @@ function renderRuns(){
     const title=make("span",row.episode.task,"task-name"),result=make("span",outcomeLabel(row),"badge "+outcomeClass(row));
     const heading=make("span",undefined,"task-line");heading.append(title,result);
     const score=row.runs.length===1?pct(row.runs[0].outcome.score):"—";
-    b.append(heading,make("span","R"+row.round+" · "+row.episode.variant+" · seed "+row.episode.seed+" / scene "+row.episode.scene,"task-meta"),make("span",row.episode.capability+" · Score "+score,"task-meta"));
+    b.append(heading,make("span",rowScopeLabel(row)+" · "+row.episode.variant+" · seed "+row.episode.seed+" / scene "+row.episode.scene,"task-meta"),make("span",row.episode.capability+" · Score "+score,"task-meta"));
     b.addEventListener("click",()=>{showRow(row);renderRuns();if(typeof matchMedia!=="undefined"&&matchMedia("(max-width: 760px)").matches)byId("detail").scrollIntoView({behavior:"smooth",block:"start"});});host.append(b);
   }
   if(!visibleRows.length)host.append(make("p","没有匹配的任务，请调整筛选条件。","empty"));
@@ -650,7 +666,7 @@ function renderRuns(){
 function showRow(row){
   clearDetail();taskFocus={episode:{...row.episode},round:row.round};selectedRowKey=rowKey(row);selectedRowSignature=JSON.stringify(row.runs.map(r=>r.run_id));const host=byId("detail-body");
   byId("detail-title").textContent=row.episode.task;
-  byId("detail-caption").textContent="R"+row.round+" · "+row.episode.capability+" · "+row.episode.variant+" · seed "+row.episode.seed+" / scene "+row.episode.scene;
+  byId("detail-caption").textContent=rowScopeLabel(row)+" · "+row.episode.capability+" · "+row.episode.variant+" · seed "+row.episode.seed+" / scene "+row.episode.scene;
   if(!row.runs.length){host.append(make("div","此任务尚未发布结果。原生结果和证据完成登记后会显示在这里。","unpublished"));return;}
   if(row.runs.length>1){host.append(make("p","同一任务有多条记录，尚未确定唯一结果；不会自动选取最高分。","unpublished"));for(const r of row.runs){const b=make("button",r.run_id);b.type="button";b.addEventListener("click",()=>{releaseVideo();detailGeneration++;host.replaceChildren();showRun(r);});host.append(b);}return;}
   showRun(row.runs[0]);

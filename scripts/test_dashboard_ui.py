@@ -123,6 +123,49 @@ function fixture(groups){
         result = subprocess.run([node, "-e", script, str(source)], capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_temporary_review_browses_original_cases_without_inventing_rounds(self):
+        self.run_ui_check(r'''
+ const ui=await boot(),data=fixture([
+  ["review",[record("review1","same_task","standard",0,1),record("review2","same_task","standard",0,2)]],
+  ["ordinary",[record("ordinary1","original_task")]]
+ ]),group=data.groups[0];
+ group.temporary_review={schema_version:"l3-temporary-upload-review-v1",status:"awaiting_user_review"};
+ group.aggregation_status="awaiting_user_review";group.rounds=[];group.round_statistics=null;
+ group.metrics={expected:null,completed:2,score:null,success_rate:null,observed_score:null,observed_success_rate:null};
+ group.selection_title="新上传待核查 · O23";data.experiment_names={review:group.selection_title};
+ for(const r of data.runs.filter(r=>group.run_ids.includes(r.run_id))){
+  r.artifacts.push({kind:"action_feedback",path:"actions.json",site_path:"data/runs/"+r.run_id+"/actions.json",sha256:"b".repeat(64),bytes:10,url:"https://example.test/"+r.run_id+"/actions.json"});
+ }
+ const original=JSON.stringify(data);ui.install(data);
+ assert.equal(ui.get("experiment-title").textContent,group.selection_title);
+ assert.equal(ui.get("detail-round").options.length,1);
+ assert.equal(ui.get("detail-round").options[0].textContent,"待核查批次");
+ assert.equal(text(ui.get("round-tabs"))," 待核查批次");
+ const card=ui.get("experiments").children.find(c=>text(c).includes(group.selection_title));
+ assert(!/完整轮|R1|0 轮|1 轮|P50_111/.test(text(card)));
+ assert.match(text(ui.get("fixed-evaluation-summary")),/当前不声明完整评测或汇总成绩/);
+ const rows=ui.evaluate('experimentRows(ledger.groups[0],"all")');
+ assert.equal(rows.length,2);assert(rows.every(row=>row.round===null&&row.temporary_review&&row.runs.length===1));
+ assert.deepEqual(rows.map(row=>row.runs[0].run_id),["review1","review2"]);
+ assert.equal(ui.get("episodes").children.length,2);assert.match(ui.get("task-count").textContent,/2 \/ 2/);
+ assert.match(ui.get("detail-caption").textContent,/^待核查批次/);
+ assert(!text(ui.get("episodes")).includes("Rnull"));
+ let video=ui.evaluate('activeVideo');assert.equal(video.src,"https://example.test/review1/head.mp4");
+ const camera=all(ui.get("detail-body"),e=>e.tag==="button"&&e.textContent==="左腕相机")[0];
+ camera.emit("click");video=ui.evaluate('activeVideo');assert.equal(video.src,"https://example.test/review1/left_wrist.mp4");
+ const fetched=[];
+ ui.context.fetch=async url=>{fetched.push(url);return {ok:true,json:async()=>[{decision_index:0,tool:"move_eef",native_controls:10,action:"original action",feedback:"original native feedback",acknowledged:true}]};};
+ const trace=find(ui.get("detail-body"),e=>e.tag==="details"&&e.children[0]?.textContent==="动作与原生反馈");
+ trace.open=true;await trace.emit("toggle");
+ assert.deepEqual(fetched,["data/runs/review1/actions.json"]);
+ assert.match(text(trace),/original native feedback/);
+ ui.get("episodes").children[1].emit("click");assert.equal(ui.evaluate('activeVideo').src,"https://example.test/review2/head.mp4");
+ ui.evaluate('selectExperiment(ledger.groups[1])');
+ assert.equal(ui.evaluate('experimentRows(ledger.groups[1],"all").length'),1);
+ assert.equal(ui.get("detail-round").options[1].textContent,"R1 · 1 / 1");
+ assert.equal(JSON.stringify(data),original,"Temporary browsing must preserve every original record");
+''')
+
     def test_group_display_plan_spans_source_selections_preserves_missing_and_conflicts(self):
         self.run_ui_check(r'''
  const ui=await boot();
