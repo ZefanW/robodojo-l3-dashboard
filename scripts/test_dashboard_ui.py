@@ -147,16 +147,16 @@ function fixture(groups){
  const card=ui.get("experiments").children.find(c=>text(c).includes(group.selection_title));
  assert(!/完整轮|R1|0 轮|1 轮|P50_111/.test(text(card)));
  assert.match(text(ui.get("fixed-evaluation-summary")),/逐 case 等权/);
- assert.match(text(card),/批次平均 Score/);assert.match(text(card),/批次成功率/);
+ assert.match(text(card),/已上传平均 Score/);assert.match(text(card),/已上传成功率/);
  assert.match(text(card),/样本 n=2/);assert.match(text(card),/50\.0%/);
  const summary=ui.evaluate('experimentSummary(ledger.groups[0])');
  assert.equal(summary.score,.5);assert.equal(summary.sr,.5);assert.equal(summary.n,2);assert.equal(summary.stddev,30);
  assert.equal(summary.capabilities.find(c=>c.name==="Open").score,.5);
- assert.match(text(ui.get("experiment-metrics")),/50\.0% 批次平均 Score/);
+ assert.match(text(ui.get("experiment-metrics")),/50\.0% 已上传平均 Score/);
  assert.match(text(ui.get("coverage-note")),/按 2 个有分数/);
  ui.get("search").value="missing-task";ui.evaluate('renderRuns()');
  assert.equal(ui.get("episodes").children.length,1); // Empty-state text only.
- assert.match(text(ui.get("experiment-metrics")),/50\.0% 批次平均 Score/);
+ assert.match(text(ui.get("experiment-metrics")),/50\.0% 已上传平均 Score/);
  ui.get("search").value="";ui.evaluate('renderRuns()');
  const rows=ui.evaluate('experimentRows(ledger.groups[0],"all")');
  assert.equal(rows.length,2);assert(rows.every(row=>row.round===null&&row.temporary_review&&row.runs.length===1));
@@ -178,6 +178,21 @@ function fixture(groups){
  assert.equal(ui.evaluate('experimentRows(ledger.groups[1],"all").length'),1);
  assert.equal(ui.get("detail-round").options[1].textContent,"R1 · 1 / 1");
  assert.equal(JSON.stringify(data),original,"Temporary browsing must preserve every original record");
+ const approved=JSON.parse(original),merged=approved.groups[0];
+ delete merged.temporary_review;merged.aggregation_status="partial";
+ merged.selection_title="O23";approved.experiment_names.review="O23";
+ merged.metrics.expected=3;
+ const expected=[...approved.runs.filter(r=>merged.run_ids.includes(r.run_id)).map(r=>r.episode),{task:"not_uploaded",capability:"Open",variant:"standard",seed:0,scene:3}];
+ merged.display_round_selection={schema_version:"l3-group-display-round-selection-v1",plan_id:"P50_111",rounds:[{round:1,label:"P50_111",expected_episodes:expected}]};
+ merged.rounds=[{round:1,run_ids:merged.run_ids,status:"partial",metrics:merged.metrics,dimensions:{},configuration_cells:[]}];
+ ui.install(approved);ui.evaluate('selectExperiment(ledger.groups[0])');
+ assert.equal(ui.evaluate('isTemporaryReview(ledger.groups[0])'),false);
+ assert.match(text(ui.get("experiment-metrics")),/2 \/ 3 当前范围已上传/);
+ assert.match(text(ui.get("experiment-metrics")),/50\.0% 已上传平均 Score/);
+ assert.match(text(ui.get("fixed-evaluation-summary")),/固定评测成绩/);
+ assert(!text(ui.get("experiments")).includes("批次尚未合并"));
+ assert.equal(ui.evaluate('experimentRows(ledger.groups[0],"all").length'),3);
+ assert.equal(ui.evaluate('experimentRows(ledger.groups[0],"all").filter(r=>r.runs.length===0).length'),1);
 ''')
 
     def test_group_display_plan_spans_source_selections_preserves_missing_and_conflicts(self):

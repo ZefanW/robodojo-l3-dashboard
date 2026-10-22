@@ -322,8 +322,8 @@ function renderAudit(g){
     const multiRound=(g.rounds||[]).length>1&&g.metrics.expected!=null;
     const complete=g.aggregation_status==="complete",ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
     const metrics=make("div",undefined,"metrics");
-    const batch=isTemporaryReview(g)?batchStatistics(g):null;
-    const auditMetrics=isTemporaryReview(g)?[[coverage(g.metrics),"已上传 case"],[pct(batch?.score_mean),"批次平均 Score"],[pct(batch?.success_rate),"批次成功率"]]:[[coverage(g.metrics),"completed & published"],[pct(complete?g.metrics.score:g.metrics.observed_score),complete?"Score":multiRound?"Completed-round score":"Current score"],[pct(complete?g.metrics.success_rate:g.metrics.observed_success_rate),complete?"Success rate":multiRound?"Completed-round SR":"Current success rate"]];
+    const batch=batchStatistics(g);
+    const auditMetrics=isTemporaryReview(g)||batch?[[coverage(g.metrics),"已上传 case"],[pct(batch?.score_mean),"已上传平均 Score"],[pct(batch?.success_rate),"已上传成功率"]]:[[coverage(g.metrics),"completed & published"],[pct(complete?g.metrics.score:g.metrics.observed_score),complete?"Score":multiRound?"Completed-round score":"Current score"],[pct(complete?g.metrics.success_rate:g.metrics.observed_success_rate),complete?"Success rate":multiRound?"Completed-round SR":"Current success rate"]];
     for(const [value,label] of auditMetrics){
       const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
     }
@@ -333,7 +333,7 @@ function renderAudit(g){
     card.append(make("p",ambiguous?"Multiple attempts overlap an episode. Scores are withheld until its result is resolved.":complete?"All selected episodes are complete.":multiRound?"The campaign score averages completed rounds equally. Partial rounds are listed below and excluded from the round mean and standard deviation.":g.metrics.expected==null?"总量未设定；仅展示当前已上传样本，不推断实验完成。":"Current scores use completed episodes only. The final score appears at full coverage.","small"));
     renderRounds(card,g);
     const dimensions=make("details"),dimensionTitle=make("summary","Capability scores and coverage");dimensions.append(dimensionTitle);
-    const capabilityMetrics=isTemporaryReview(g)?Object.fromEntries(Object.entries(batch?.capabilities||{}).map(([name,c])=>[name,{observed_score:c.score_mean,completed:c.run_count,expected:null}])):g.dimensions;
+    const capabilityMetrics=isTemporaryReview(g)||batch?Object.fromEntries(Object.entries(batch?.capabilities||{}).map(([name,c])=>[name,{observed_score:c.score_mean,completed:c.run_count,expected:null}])):g.dimensions;
     for(const [name,m]of Object.entries(capabilityMetrics)){
       const row=make("div",undefined,"dimension"),bar=make("div",undefined,"bar"),fill=make("span");
       fill.style.width=(typeof m.observed_score==="number"?Math.max(0,Math.min(100,m.observed_score*100)):0)+"%";bar.append(fill);
@@ -553,11 +553,11 @@ function renderDetailNavigation(g){
   rounds.value=selectedRound;
 }
 function experimentSummary(g){
-  if(isTemporaryReview(g)){
+  if(isTemporaryReview(g)||batchStatistics(g)){
     const b=batchStatistics(g)||{};
     return {score:b.score_mean??null,sr:b.success_rate??null,stddev:typeof b.score_stddev==="number"?b.score_stddev*100:null,n:b.run_count??g.run_ids.length,
       capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].map(name=>{const c=b.capabilities?.[name]||{};return {name,score:c.score_mean??null,completed:c.run_count??0,expected:null};}),
-      basis:"当前已上传 case 等权平均 · 批次尚未合并"+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
+      basis:"当前已上传 case 等权平均"+(isTemporaryReview(g)?" · 批次尚未合并":" · 固定评测成绩见上方")+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
   }
   const rounds=g.rounds||[], completeRounds=rounds.filter(r=>r.status==="complete"), multiple=rounds.length>1&&g.metrics.expected!=null;
   const ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
@@ -577,7 +577,7 @@ function experimentSummary(g){
 function renderExperimentSummary(button,g){
   renderFixedScores(button,g,true);
   const value=experimentSummary(g),stats=make("span",undefined,"card-stats");
-  for(const [text,label] of (isTemporaryReview(g)?[[pct(value.score),"批次平均 Score"],[pct(value.sr),"批次成功率"]]:[[pct(value.score),"已发布轮次汇总 Score"],[points(value.stddev),"Score 标准差"]])){
+  for(const [text,label] of (isTemporaryReview(g)||batchStatistics(g)?[[pct(value.score),"已上传平均 Score"],[pct(value.sr),"已上传成功率"]]:[[pct(value.score),"已发布轮次汇总 Score"],[points(value.stddev),"Score 标准差"]])){
     const item=make("span",undefined,"card-stat");item.append(make("b",text),make("span",label));stats.append(item);
   }
   const c=costsFor(g),tokens=make("span",undefined,"card-tokens");
@@ -585,7 +585,7 @@ function renderExperimentSummary(button,g){
   button.append(tokens,make("span",costNote(c),"card-stat-note"));
   appendApiCosts(button,g,true);
   button.append(stats);
-  if(isTemporaryReview(g))button.append(make("span","样本 n="+value.n+" · 单例 Score 标准差 "+points(value.stddev),"card-stat-note"));
+  if(isTemporaryReview(g)||batchStatistics(g))button.append(make("span","样本 n="+value.n+" · 单例 Score 标准差 "+points(value.stddev),"card-stat-note"));
   else button.append(make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 轮间波动","card-stat-note"));
   button.append(make("span",value.basis,"card-stat-note"));
   const divisions=make("span",undefined,"card-capabilities");
@@ -630,7 +630,7 @@ function renderExperiment(){
   const isComplete=round?round.status==="complete":g.aggregation_status==="complete";
   const metrics=byId("experiment-metrics");metrics.replaceChildren();
   const batch=batchStatistics(g);
-  const displayMetrics=isTemporaryReview(g)?[[number(batch?.run_count??g.run_ids.length),"已上传 case 数"],[pct(batch?.score_mean),"批次平均 Score"],[pct(batch?.success_rate),"批次成功率"]]:[[coverage(m),"当前范围已发布"],[pct(m.score),round?"本轮 Score":"所有轮次 Score"],[pct(m.success_rate),"当前范围 SR"]];
+  const displayMetrics=isTemporaryReview(g)||batch?[[coverage(m),"当前范围已上传"],[pct(batch?.score_mean),"已上传平均 Score"],[pct(batch?.success_rate),"已上传成功率"]]:[[coverage(m),"当前范围已发布"],[pct(m.score),round?"本轮 Score":"所有轮次 Score"],[pct(m.success_rate),"当前范围 SR"]];
   for(const [value,label] of displayMetrics){
     const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
   }
@@ -639,7 +639,7 @@ function renderExperiment(){
   byId("round-config").textContent=isTemporaryReview(g)?"按原始 task / variant / seed / scene 逐条核查，不声明实验轮次。":round?roundConfiguration(round):"各轮的 seed、scene 和 variant 按原始轮次定义分别列出。";
   byId("coverage-note").textContent=m.expected==null?"总量未设定，按已上传样本展示；不声明完整轮或最终成绩。":isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
   if(!isComplete && typeof m.observed_score==="number")byId("coverage-note").textContent+=" 已发布部分 Score "+pct(m.observed_score)+" / SR "+pct(m.observed_success_rate)+"。";
-  if(isTemporaryReview(g))byId("coverage-note").textContent=batchBasis(g);
+  if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
   renderAudit(g);renderCapabilities();renderRuns();
 }
 function renderCapabilities(){
