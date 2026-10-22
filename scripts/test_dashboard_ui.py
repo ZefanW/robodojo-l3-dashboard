@@ -132,6 +132,9 @@ function fixture(groups){
  group.temporary_review={schema_version:"l3-temporary-upload-review-v1",status:"awaiting_user_review"};
  group.aggregation_status="awaiting_user_review";group.rounds=[];group.round_statistics=null;
  group.metrics={expected:null,completed:2,score:null,success_rate:null,observed_score:null,observed_success_rate:null};
+ data.runs[0].outcome.score=.8;data.runs[0].outcome.success=true;
+ data.runs[1].outcome.score=.2;
+ group.batch_statistics={schema_version:"l3-uploaded-batch-statistics-v1",basis:"equal_published_run_weight",run_count:2,score_count:2,success_count:2,score_mean:.5,success_rate:.5,score_stddev:.3,successful_runs:1,unknown_score_count:0,unknown_success_count:0,capabilities:{Open:{run_count:2,score_count:2,success_count:2,score_mean:.5,success_rate:.5}}};
  group.selection_title="新上传待核查 · O23";data.experiment_names={review:group.selection_title};
  for(const r of data.runs.filter(r=>group.run_ids.includes(r.run_id))){
   r.artifacts.push({kind:"action_feedback",path:"actions.json",site_path:"data/runs/"+r.run_id+"/actions.json",sha256:"b".repeat(64),bytes:10,url:"https://example.test/"+r.run_id+"/actions.json"});
@@ -143,7 +146,18 @@ function fixture(groups){
  assert.equal(text(ui.get("round-tabs"))," 待核查批次");
  const card=ui.get("experiments").children.find(c=>text(c).includes(group.selection_title));
  assert(!/完整轮|R1|0 轮|1 轮|P50_111/.test(text(card)));
- assert.match(text(ui.get("fixed-evaluation-summary")),/当前不声明完整评测或汇总成绩/);
+ assert.match(text(ui.get("fixed-evaluation-summary")),/逐 case 等权/);
+ assert.match(text(card),/批次平均 Score/);assert.match(text(card),/批次成功率/);
+ assert.match(text(card),/样本 n=2/);assert.match(text(card),/50\.0%/);
+ const summary=ui.evaluate('experimentSummary(ledger.groups[0])');
+ assert.equal(summary.score,.5);assert.equal(summary.sr,.5);assert.equal(summary.n,2);assert.equal(summary.stddev,30);
+ assert.equal(summary.capabilities.find(c=>c.name==="Open").score,.5);
+ assert.match(text(ui.get("experiment-metrics")),/50\.0% 批次平均 Score/);
+ assert.match(text(ui.get("coverage-note")),/按 2 个有分数/);
+ ui.get("search").value="missing-task";ui.evaluate('renderRuns()');
+ assert.equal(ui.get("episodes").children.length,1); // Empty-state text only.
+ assert.match(text(ui.get("experiment-metrics")),/50\.0% 批次平均 Score/);
+ ui.get("search").value="";ui.evaluate('renderRuns()');
  const rows=ui.evaluate('experimentRows(ledger.groups[0],"all")');
  assert.equal(rows.length,2);assert(rows.every(row=>row.round===null&&row.temporary_review&&row.runs.length===1));
  assert.deepEqual(rows.map(row=>row.runs[0].run_id),["review1","review2"]);
