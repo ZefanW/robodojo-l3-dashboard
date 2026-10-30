@@ -754,10 +754,11 @@ function renderCodingReview(host,r,generation){
       const bytes=await response.arrayBuffer(),hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map(v=>v.toString(16).padStart(2,"0")).join("");
       if(hash!==artifact.sha256||bytes.byteLength!==artifact.bytes)throw new Error("Code SHA mismatch");
       const review=JSON.parse(new TextDecoder().decode(bytes));if(generation!==detailGeneration)return;
-      if(review.schema_version!=="l3-native-coding-review-v1"||review.run_id!==r.run_id||review.profile!==r.protocol.profile||review.tool_calls.length!==review.tool_call_count||review.files.length!==review.code_file_count)throw new Error("Code scope mismatch");
+      if(!["l3-native-coding-review-v1","l3-native-coding-review-v2"].includes(review.schema_version)||review.run_id!==r.run_id||review.profile!==r.protocol.profile||review.tool_calls.length!==review.tool_call_count||review.files.length!==review.code_file_count)throw new Error("Code scope mismatch");
       body.replaceChildren();const download=link("下载完整代码与执行记录 JSON",artifact.site_path,true);download.setAttribute("download","coding-review.json");body.append(download,make("p",review.tool_call_count+" 次实际工具调用 · "+review.code_file_count+" 个代码文件 · SHA 已核验","small"));
       for(const item of review.tool_calls){
-        const block=make("details",undefined,"trace-event");block.append(make("summary","决策 "+item.decision_index+" · "+item.name+" · exit "+item.execution_result.exit_code),make("p","工具调用 "+item.call_id,"small"),make("h4","实际命令 / 代码"),make("pre",item.command),make("h4","执行结果（合并输出）"),make("pre",item.execution_result.output));
+        const failedWait=item.tool==="wait"&&item.execution_result.stream==="tool-error";
+        const block=make("details",undefined,"trace-event");block.append(make("summary","决策 "+item.decision_index+" · "+item.name+(failedWait?" · 工具错误":" · exit "+item.execution_result.exit_code)),make("p","工具调用 "+item.call_id,"small"),make("h4",failedWait?"实际工具参数":"实际命令 / 代码"),make("pre",failedWait?item.arguments:item.command),make("h4",failedWait?"工具返回的错误":"执行结果（合并输出）"),make("pre",item.execution_result.output));
         const args=make("details");args.append(make("summary","原生工具参数与完整输出"),make("pre",item.arguments),make("pre",JSON.stringify(item.output,null,2)),make("p","原调用 SHA "+item.original_call_sha256+" · 原输出 SHA "+item.original_output_sha256,"small"));block.append(args);body.append(block);
       }
       for(const file of review.files){const block=make("details",undefined,"trace-event");block.append(make("summary",file.path+" · "+file.bytes+" bytes"),make("pre",file.content),make("p",file.snapshot_note,"small"),make("p","原件 SHA "+file.original_sha256+" · 公开 SHA "+file.public_sha256,"small"));body.append(block);}
