@@ -27,6 +27,19 @@ function renderRerunScores(host,g,compact=false){
   }
   host.append(grid);
 }
+const isNativeCoding = g => g?.selection_id==="o23-depthpro-coding-unlimited-eight-20261030"
+  &&g.protocol?.profile==="o23-depthpro-coding-unlimited-v1"&&g.protocol.max_decisions===null&&g.protocol.native_control_cap===20
+  &&g.native_coding_scope?.schema_version==="l3-native-coding-eight-v1"&&g.native_coding_scope.expected===8
+  &&g.metrics?.expected===8&&g.display_round_selection?.plan_id===g.selection_id;
+const codingScopeBasis = g => "指定8项独立实验：原生编程、决策轮次不限，每次动作最多20控制步，禁止联网。已完成结果逐case等权，未发布不计零；与此前实验分开保留。";
+function renderCodingScores(host,g,compact=false){
+  const b=batchStatistics(g),grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
+  for(const [label,value,status] of [["已完成",coverage(g.metrics),"指定8项"],["已完成均分",pct(b?.score_mean),"n="+(b?.score_count??0)+" · 逐case等权"],["已完成成功率",pct(b?.success_rate),"n="+(b?.success_count??0)]]){
+    const cell=make(compact?"span":"section",undefined,"fixed-score");
+    cell.append(make("span",label,"fixed-score-label"),make("b",value,"fixed-score-value"),make("span",status,"fixed-score-status"));grid.append(cell);
+  }
+  host.append(grid);
+}
 const batchBasis = g => {
   const b=batchStatistics(g);
   return b?"逐 case 等权：平均 Score 按 "+b.score_count+" 个有分数的 case 计算，成功率按 "+b.success_count+" 个有结局的 case 计算。仅统计本批次已上传结果，不随下方筛选改变。":"当前批次统计待同步。";
@@ -151,6 +164,7 @@ function fixedResultStatus(result,expected){
   return count+" / "+expected+" · "+(result.conflicts?.length?"结果待核对":"尚未齐全");
 }
 function renderFixedScores(host,g,compact=false){
+  if(isNativeCoding(g)){renderCodingScores(host,g,compact);return;}
   if(isIndependentRerun(g)){renderRerunScores(host,g,compact);return;}
   if(isTemporaryReview(g)){host.append(make(compact?"span":"p","待核查批次 · 已上传样本均值","small"));return;}
   const grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
@@ -165,6 +179,7 @@ function renderFixedScores(host,g,compact=false){
 const fixedCaseLabel=c=>c.task+" · "+c.variant+" · seed "+c.seed+" / scene "+c.scene;
 function renderFixedEvaluationSummary(g){
   const host=byId("fixed-evaluation-summary");if(!host)return;host.replaceChildren();
+  if(isNativeCoding(g)){host.append(make("h3","原生编程 · 决策轮次不限"),make("p",codingScopeBasis(g),"small"));renderCodingScores(host,g);return;}
   if(isIndependentRerun(g)){host.append(make("h3","8项仿真复跑"),make("p",rerunScopeBasis(g),"small"));renderRerunScores(host,g);return;}
   if(isTemporaryReview(g)){host.append(make("h3","当前批次平均成绩"),make("p",batchBasis(g)+" 各方法仍独立展示，核查后再决定合并。","small"));return;}
   host.append(make("h3","固定评测成绩"),make("p","按固定场景顺序统计，样本齐全后自动发布；不随下方轮次筛选改变。","small"));
@@ -334,7 +349,7 @@ function renderAudit(g){
   {
     const card=make("article",undefined,"group");
     card.append(make("h3",experimentName(g)),
-      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+g.protocol.max_decisions+" decisions / episode","small"));
+      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+(isNativeCoding(g)?"决策轮次不限 · 原生编程 · 禁止联网":g.protocol.max_decisions+" decisions / episode"),"small"));
     const multiRound=(g.rounds||[]).length>1&&g.metrics.expected!=null;
     const complete=g.aggregation_status==="complete",ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
     const metrics=make("div",undefined,"metrics");
@@ -454,7 +469,7 @@ function experimentOptionName(g,groups){
   const suffix=duplicates.filter(item=>item.selection_id===g.selection_id).length>1?g.selection_id+" · "+g.group_id:g.selection_id;
   return name+" · "+suffix;
 }
-const groupLabel = g => isIndependentRerun(g)?"独立复跑组":isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
+const groupLabel = g => isNativeCoding(g)?"原生编程实验组":isIndependentRerun(g)?"独立复跑组":isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
 function updateGroupPreference(g,change){
   const next={hidden:typeof change.hidden==="boolean"?change.hidden:preferenceFor(g).hidden};
   if(next.hidden)groupPreferences.set(g.group_id,next);else groupPreferences.delete(g.group_id);
@@ -572,8 +587,8 @@ function experimentSummary(g){
   if(isTemporaryReview(g)||batchStatistics(g)){
     const b=batchStatistics(g)||{};
     return {score:b.score_mean??null,sr:b.success_rate??null,stddev:typeof b.score_stddev==="number"?b.score_stddev*100:null,n:b.run_count??g.run_ids.length,
-      capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].filter(name=>!isIndependentRerun(g)||b.capabilities?.[name]).map(name=>{const c=b.capabilities?.[name]||{};return {name,score:c.score_mean??null,completed:c.run_count??0,expected:null};}),
-      basis:"当前已上传 case 等权平均"+(isIndependentRerun(g)?" · 独立8项复跑":isTemporaryReview(g)?" · 批次尚未合并":" · 固定评测成绩见上方")+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
+      capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].filter(name=>!(isIndependentRerun(g)||isNativeCoding(g))||b.capabilities?.[name]).map(name=>{const c=b.capabilities?.[name]||{};return {name,score:c.score_mean??null,completed:c.run_count??0,expected:null};}),
+      basis:"当前已上传 case 等权平均"+(isNativeCoding(g)?" · 原生编程指定8项":isIndependentRerun(g)?" · 独立8项复跑":isTemporaryReview(g)?" · 批次尚未合并":" · 固定评测成绩见上方")+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
   }
   const rounds=g.rounds||[], completeRounds=rounds.filter(r=>r.status==="complete"), multiple=rounds.length>1&&g.metrics.expected!=null;
   const ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
@@ -655,7 +670,7 @@ function renderExperiment(){
   byId("round-config").textContent=isTemporaryReview(g)?"按原始 task / variant / seed / scene 逐条核查，不声明实验轮次。":round?roundConfiguration(round):"各轮的 seed、scene 和 variant 按原始轮次定义分别列出。";
   byId("coverage-note").textContent=m.expected==null?"总量未设定，按已上传样本展示；不声明完整轮或最终成绩。":isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
   if(!isComplete && typeof m.observed_score==="number")byId("coverage-note").textContent+=" 已发布部分 Score "+pct(m.observed_score)+" / SR "+pct(m.observed_success_rate)+"。";
-  if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isIndependentRerun(g)?" "+rerunScopeBasis(g):isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
+  if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isNativeCoding(g)?" "+codingScopeBasis(g):isIndependentRerun(g)?" "+rerunScopeBasis(g):isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
   renderAudit(g);renderCapabilities();renderRuns();
 }
 function renderCapabilities(){
@@ -727,11 +742,37 @@ function renderVideo(host,r){
   video.addEventListener("error",()=>{if(activeVideo===video)hint.textContent="视频暂时无法播放，可尝试其他视角或打开原视频。";});
   section.append(tabs,stage,hint,original);host.append(section);if(videos.length)choose(videos[0],0);else{stage.hidden=true;hint.textContent="此记录没有可用的原始视频。";}
 }
+function renderCodingReview(host,r,generation){
+  if(r.selection?.id!=="o23-depthpro-coding-unlimited-eight-20261030"||r.protocol?.profile!=="o23-depthpro-coding-unlimited-v1")return;
+  const artifact=r.artifacts.find(a=>a.kind==="coding_execution"),section=make("details",undefined,"evidence-section"),body=make("div","展开后读取实际执行代码…","small");
+  section.append(make("summary","实际执行代码与结果"),body);host.append(section);let loaded=false;
+  section.addEventListener("toggle",async()=>{
+    if(!section.open||loaded)return;loaded=true;body.textContent="正在核验代码文件…";
+    try{
+      const url=artifact&&safeLink(artifact.site_path,true);if(!url)throw new Error("No code artifact");
+      const response=await fetch(url,{credentials:"omit",redirect:"error"});if(!response.ok)throw new Error("Code read failed");
+      const bytes=await response.arrayBuffer(),hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map(v=>v.toString(16).padStart(2,"0")).join("");
+      if(hash!==artifact.sha256||bytes.byteLength!==artifact.bytes)throw new Error("Code SHA mismatch");
+      const review=JSON.parse(new TextDecoder().decode(bytes));if(generation!==detailGeneration)return;
+      if(review.schema_version!=="l3-native-coding-review-v1"||review.run_id!==r.run_id||review.profile!==r.protocol.profile||review.tool_calls.length!==review.tool_call_count||review.files.length!==review.code_file_count)throw new Error("Code scope mismatch");
+      body.replaceChildren();const download=link("下载完整代码与执行记录 JSON",artifact.site_path,true);download.setAttribute("download","coding-review.json");body.append(download,make("p",review.tool_call_count+" 次实际工具调用 · "+review.code_file_count+" 个代码文件 · SHA 已核验","small"));
+      for(const item of review.tool_calls){
+        const block=make("details",undefined,"trace-event");block.append(make("summary","决策 "+item.decision_index+" · "+item.name+" · exit "+item.execution_result.exit_code),make("p","工具调用 "+item.call_id,"small"),make("h4","实际命令 / 代码"),make("pre",item.command),make("h4","执行结果（合并输出）"),make("pre",item.execution_result.output));
+        const args=make("details");args.append(make("summary","原生工具参数与完整输出"),make("pre",item.arguments),make("pre",JSON.stringify(item.output,null,2)),make("p","原调用 SHA "+item.original_call_sha256+" · 原输出 SHA "+item.original_output_sha256,"small"));block.append(args);body.append(block);
+      }
+      for(const file of review.files){const block=make("details",undefined,"trace-event");block.append(make("summary",file.path+" · "+file.bytes+" bytes"),make("pre",file.content),make("p",file.snapshot_note,"small"),make("p","原件 SHA "+file.original_sha256+" · 公开 SHA "+file.public_sha256,"small"));body.append(block);}
+      for(const note of review.limitations)body.append(make("p",note,"small"));
+      for(const change of review.redactions)body.append(make("p","脱敏说明 · 决策 "+change.decision_index+" · "+change.reason+" · 占位符 "+change.replacement,"small"));
+    }catch{if(generation===detailGeneration){body.textContent="代码记录暂不可读或未通过 SHA 核验，请稍后重试。";loaded=false;}}
+  });
+}
+
 function showRun(r){
   const host=byId("detail-body"),generation=detailGeneration;
   const metrics=make("div",undefined,"episode-metrics");
   for(const [value,label] of [[pct(r.outcome.score),"Score"],[r.outcome.success===true?"成功":r.outcome.success===false?"失败":"未知","原生结果"],[r.outcome.model_decisions,"模型决策"],[r.outcome.native_controls,"控制步"]]){const box=make("div");box.append(make("strong",value),make("span",label));metrics.append(box);}host.append(metrics);
   host.append(make("p","Isaac Sim "+simulatorVersion(r)+" · "+r.model.thinking_effort+" · "+r.protocol.profile,"small"));renderVideo(host,r);
+  renderCodingReview(host,r,generation);
   const traces=make("details",undefined,"evidence-section");traces.append(make("summary","动作与原生反馈"));const traceHost=make("div","展开后读取动作记录…","small");traces.append(traceHost);host.append(traces);let traceLoaded=false;
   traces.addEventListener("toggle",async()=>{
     if(!traces.open||traceLoaded)return;traceLoaded=true;traceHost.textContent="正在读取动作反馈…";
