@@ -13,6 +13,20 @@ const isTemporaryReview = g => g?.temporary_review?.schema_version==="l3-tempora
   &&g.temporary_review.status==="awaiting_user_review"&&g.aggregation_status==="awaiting_user_review";
 const batchStatistics = g => g?.batch_statistics?.schema_version==="l3-uploaded-batch-statistics-v1"
   &&g.batch_statistics.basis==="equal_published_run_weight"?g.batch_statistics:null;
+// Only the explicitly authorized eight-case diagnostic tab uses its own scope cards.
+const isIndependentRerun = g => g?.selection_id==="o23456-compact-first42-eight-sim-rerun-20261030"
+  &&g.independent_rerun_scope?.schema_version==="l3-independent-rerun-eight-v1"
+  &&g.independent_rerun_scope.selection_id===g.selection_id&&g.independent_rerun_scope.expected===8
+  &&g.metrics?.expected===8&&g.display_round_selection?.plan_id===g.selection_id;
+const rerunScopeBasis = g => "本页仅含明确指定的8项仿真复跑；已完成结果逐 case 等权，未发布不计零。原111项保留原分数和费用，不合并、不挑最高分。";
+function renderRerunScores(host,g,compact=false){
+  const b=batchStatistics(g),grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
+  for(const [label,value,status] of [["已完成",coverage(g.metrics),"指定8项复跑"],["已完成均分",pct(b?.score_mean),"n="+(b?.score_count??0)+" · 逐 case 等权"],["已完成成功率",pct(b?.success_rate),"n="+(b?.success_count??0)]]){
+    const cell=make(compact?"span":"section",undefined,"fixed-score");
+    cell.append(make("span",label,"fixed-score-label"),make("b",value,"fixed-score-value"),make("span",status,"fixed-score-status"));grid.append(cell);
+  }
+  host.append(grid);
+}
 const batchBasis = g => {
   const b=batchStatistics(g);
   return b?"逐 case 等权：平均 Score 按 "+b.score_count+" 个有分数的 case 计算，成功率按 "+b.success_count+" 个有结局的 case 计算。仅统计本批次已上传结果，不随下方筛选改变。":"当前批次统计待同步。";
@@ -137,6 +151,7 @@ function fixedResultStatus(result,expected){
   return count+" / "+expected+" · "+(result.conflicts?.length?"结果待核对":"尚未齐全");
 }
 function renderFixedScores(host,g,compact=false){
+  if(isIndependentRerun(g)){renderRerunScores(host,g,compact);return;}
   if(isTemporaryReview(g)){host.append(make(compact?"span":"p","待核查批次 · 已上传样本均值","small"));return;}
   const grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
   for(const [id,label,expected] of fixedPlans){
@@ -150,6 +165,7 @@ function renderFixedScores(host,g,compact=false){
 const fixedCaseLabel=c=>c.task+" · "+c.variant+" · seed "+c.seed+" / scene "+c.scene;
 function renderFixedEvaluationSummary(g){
   const host=byId("fixed-evaluation-summary");if(!host)return;host.replaceChildren();
+  if(isIndependentRerun(g)){host.append(make("h3","8项仿真复跑"),make("p",rerunScopeBasis(g),"small"));renderRerunScores(host,g);return;}
   if(isTemporaryReview(g)){host.append(make("h3","当前批次平均成绩"),make("p",batchBasis(g)+" 各方法仍独立展示，核查后再决定合并。","small"));return;}
   host.append(make("h3","固定评测成绩"),make("p","按固定场景顺序统计，样本齐全后自动发布；不随下方轮次筛选改变。","small"));
   renderFixedScores(host,g);
@@ -438,7 +454,7 @@ function experimentOptionName(g,groups){
   const suffix=duplicates.filter(item=>item.selection_id===g.selection_id).length>1?g.selection_id+" · "+g.group_id:g.selection_id;
   return name+" · "+suffix;
 }
-const groupLabel = g => isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
+const groupLabel = g => isIndependentRerun(g)?"独立复跑组":isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
 function updateGroupPreference(g,change){
   const next={hidden:typeof change.hidden==="boolean"?change.hidden:preferenceFor(g).hidden};
   if(next.hidden)groupPreferences.set(g.group_id,next);else groupPreferences.delete(g.group_id);
@@ -556,8 +572,8 @@ function experimentSummary(g){
   if(isTemporaryReview(g)||batchStatistics(g)){
     const b=batchStatistics(g)||{};
     return {score:b.score_mean??null,sr:b.success_rate??null,stddev:typeof b.score_stddev==="number"?b.score_stddev*100:null,n:b.run_count??g.run_ids.length,
-      capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].map(name=>{const c=b.capabilities?.[name]||{};return {name,score:c.score_mean??null,completed:c.run_count??0,expected:null};}),
-      basis:"当前已上传 case 等权平均"+(isTemporaryReview(g)?" · 批次尚未合并":" · 固定评测成绩见上方")+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
+      capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].filter(name=>!isIndependentRerun(g)||b.capabilities?.[name]).map(name=>{const c=b.capabilities?.[name]||{};return {name,score:c.score_mean??null,completed:c.run_count??0,expected:null};}),
+      basis:"当前已上传 case 等权平均"+(isIndependentRerun(g)?" · 独立8项复跑":isTemporaryReview(g)?" · 批次尚未合并":" · 固定评测成绩见上方")+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
   }
   const rounds=g.rounds||[], completeRounds=rounds.filter(r=>r.status==="complete"), multiple=rounds.length>1&&g.metrics.expected!=null;
   const ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
@@ -639,7 +655,7 @@ function renderExperiment(){
   byId("round-config").textContent=isTemporaryReview(g)?"按原始 task / variant / seed / scene 逐条核查，不声明实验轮次。":round?roundConfiguration(round):"各轮的 seed、scene 和 variant 按原始轮次定义分别列出。";
   byId("coverage-note").textContent=m.expected==null?"总量未设定，按已上传样本展示；不声明完整轮或最终成绩。":isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
   if(!isComplete && typeof m.observed_score==="number")byId("coverage-note").textContent+=" 已发布部分 Score "+pct(m.observed_score)+" / SR "+pct(m.observed_success_rate)+"。";
-  if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
+  if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isIndependentRerun(g)?" "+rerunScopeBasis(g):isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
   renderAudit(g);renderCapabilities();renderRuns();
 }
 function renderCapabilities(){
