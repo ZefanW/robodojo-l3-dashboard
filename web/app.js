@@ -40,6 +40,18 @@ function renderCodingScores(host,g,compact=false){
   }
   host.append(grid);
 }
+const isNativeCodingFirst42 = g => g?.selection_id==="o23-depthpro-coding-unlimited-first42-20261030"
+  &&g.protocol?.profile==="o23-depthpro-coding-unlimited-v1"&&g.protocol.max_decisions===null&&g.protocol.native_control_cap===20
+  &&g.native_coding_first42?.schema_version==="l3-native-coding-first42-v1"&&g.native_coding_first42.expected===42
+  &&g.native_coding_first42.selection_id===g.selection_id&&g.metrics?.expected===42&&g.display_round_selection?.plan_id===g.selection_id;
+const codingFirst42Basis = g => "首轮42项由原8项与新增34项明确组成；保留各自原始结果、来源和仿真版本。完整 Score 先按任务、能力求均值，再对五类能力等权；阶段均分仅对已完成样本等权，缺项不计零。原8项独立页继续保留。";
+function renderCodingFirst42Scores(host,g,compact=false){
+  const v=g.native_coding_first42.view,grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
+  for(const [label,value,status] of [["首轮 Score",pct(v.score),v.completed===42?"完整42项 · 五类等权":"待齐全 · 五类等权"],["已完成",v.completed+" / 42","原8项 + 新增34项"],["已完成样本均分",pct(v.partial.score),"n="+v.partial.denominator+" · 阶段值，非最终 Score"]]){
+    const cell=make(compact?"span":"section",undefined,"fixed-score");cell.append(make("span",label,"fixed-score-label"),make("b",value,"fixed-score-value"),make("span",status,"fixed-score-status"));grid.append(cell);
+  }
+  host.append(grid);
+}
 const batchBasis = g => {
   const b=batchStatistics(g);
   return b?"逐 case 等权：平均 Score 按 "+b.score_count+" 个有分数的 case 计算，成功率按 "+b.success_count+" 个有结局的 case 计算。仅统计本批次已上传结果，不随下方筛选改变。":"当前批次统计待同步。";
@@ -164,6 +176,7 @@ function fixedResultStatus(result,expected){
   return count+" / "+expected+" · "+(result.conflicts?.length?"结果待核对":"尚未齐全");
 }
 function renderFixedScores(host,g,compact=false){
+  if(isNativeCodingFirst42(g)){renderCodingFirst42Scores(host,g,compact);return;}
   if(isNativeCoding(g)){renderCodingScores(host,g,compact);return;}
   if(isIndependentRerun(g)){renderRerunScores(host,g,compact);return;}
   if(isTemporaryReview(g)){host.append(make(compact?"span":"p","待核查批次 · 已上传样本均值","small"));return;}
@@ -179,6 +192,7 @@ function renderFixedScores(host,g,compact=false){
 const fixedCaseLabel=c=>c.task+" · "+c.variant+" · seed "+c.seed+" / scene "+c.scene;
 function renderFixedEvaluationSummary(g){
   const host=byId("fixed-evaluation-summary");if(!host)return;host.replaceChildren();
+  if(isNativeCodingFirst42(g)){host.append(make("h3","原生编程 · 首轮42"),make("p",codingFirst42Basis(g),"small"));renderCodingFirst42Scores(host,g);for(const [cap,c] of Object.entries(g.native_coding_first42.view.capability_coverage))host.append(make("p",cap+" · "+c.completed+" / "+c.expected,"small"));return;}
   if(isNativeCoding(g)){host.append(make("h3","原生编程 · 决策轮次不限"),make("p",codingScopeBasis(g),"small"));renderCodingScores(host,g);return;}
   if(isIndependentRerun(g)){host.append(make("h3","8项仿真复跑"),make("p",rerunScopeBasis(g),"small"));renderRerunScores(host,g);return;}
   if(isTemporaryReview(g)){host.append(make("h3","当前批次平均成绩"),make("p",batchBasis(g)+" 各方法仍独立展示，核查后再决定合并。","small"));return;}
@@ -349,12 +363,12 @@ function renderAudit(g){
   {
     const card=make("article",undefined,"group");
     card.append(make("h3",experimentName(g)),
-      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+(isNativeCoding(g)?"决策轮次不限 · 原生编程 · 禁止联网":g.protocol.max_decisions+" decisions / episode"),"small"));
+      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+((isNativeCoding(g)||isNativeCodingFirst42(g))?"决策轮次不限 · 原生编程 · 禁止联网":g.protocol.max_decisions+" decisions / episode"),"small"));
     const multiRound=(g.rounds||[]).length>1&&g.metrics.expected!=null;
     const complete=g.aggregation_status==="complete",ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
     const metrics=make("div",undefined,"metrics");
     const batch=batchStatistics(g);
-    const auditMetrics=isTemporaryReview(g)||batch?[[coverage(g.metrics),"已上传 case"],[pct(batch?.score_mean),"已上传平均 Score"],[pct(batch?.success_rate),"已上传成功率"]]:[[coverage(g.metrics),"completed & published"],[pct(complete?g.metrics.score:g.metrics.observed_score),complete?"Score":multiRound?"Completed-round score":"Current score"],[pct(complete?g.metrics.success_rate:g.metrics.observed_success_rate),complete?"Success rate":multiRound?"Completed-round SR":"Current success rate"]];
+    const auditMetrics=isNativeCodingFirst42(g)?[[coverage(g.metrics),"首轮已发布"],[pct(g.metrics.score),"首轮 Score · 五类等权"],[pct(g.native_coding_first42.view.partial.score),"已完成样本均分 · 阶段值"]]:isTemporaryReview(g)||batch?[[coverage(g.metrics),"已上传 case"],[pct(batch?.score_mean),"已上传平均 Score"],[pct(batch?.success_rate),"已上传成功率"]]:[[coverage(g.metrics),"completed & published"],[pct(complete?g.metrics.score:g.metrics.observed_score),complete?"Score":multiRound?"Completed-round score":"Current score"],[pct(complete?g.metrics.success_rate:g.metrics.observed_success_rate),complete?"Success rate":multiRound?"Completed-round SR":"Current success rate"]];
     for(const [value,label] of auditMetrics){
       const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
     }
@@ -469,7 +483,7 @@ function experimentOptionName(g,groups){
   const suffix=duplicates.filter(item=>item.selection_id===g.selection_id).length>1?g.selection_id+" · "+g.group_id:g.selection_id;
   return name+" · "+suffix;
 }
-const groupLabel = g => isNativeCoding(g)?"原生编程实验组":isIndependentRerun(g)?"独立复跑组":isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
+const groupLabel = g => isNativeCodingFirst42(g)?"首轮42汇总":isNativeCoding(g)?"原生编程实验组":isIndependentRerun(g)?"独立复跑组":isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
 function updateGroupPreference(g,change){
   const next={hidden:typeof change.hidden==="boolean"?change.hidden:preferenceFor(g).hidden};
   if(next.hidden)groupPreferences.set(g.group_id,next);else groupPreferences.delete(g.group_id);
@@ -584,6 +598,7 @@ function renderDetailNavigation(g){
   rounds.value=selectedRound;
 }
 function experimentSummary(g){
+  if(isNativeCodingFirst42(g)){const v=g.native_coding_first42.view,complete=v.completed===42;return {score:complete?v.score:v.partial.score,sr:complete?v.evaluation.success_rate:g.metrics.observed_success_rate,stddev:null,n:v.completed,capabilities:Object.entries(g.dimensions).map(([name,d])=>({name,score:d.observed_score,completed:d.completed,expected:d.expected})),basis:complete?"完整首轮42 · 五类能力等权":"已完成样本均分 · n="+v.completed+"/42 · 阶段值，非最终 Score"};}
   if(isTemporaryReview(g)||batchStatistics(g)){
     const b=batchStatistics(g)||{};
     return {score:b.score_mean??null,sr:b.success_rate??null,stddev:typeof b.score_stddev==="number"?b.score_stddev*100:null,n:b.run_count??g.run_ids.length,
@@ -608,7 +623,7 @@ function experimentSummary(g){
 function renderExperimentSummary(button,g){
   renderFixedScores(button,g,true);
   const value=experimentSummary(g),stats=make("span",undefined,"card-stats");
-  for(const [text,label] of (isTemporaryReview(g)||batchStatistics(g)?[[pct(value.score),"已上传平均 Score"],[pct(value.sr),"已上传成功率"]]:[[pct(value.score),"已发布轮次汇总 Score"],[points(value.stddev),"Score 标准差"]])){
+  for(const [text,label] of (isNativeCodingFirst42(g)?[[pct(value.score),g.metrics.completed===42?"首轮 Score · 五类等权":"已完成样本均分 · 阶段值"],[pct(value.sr),g.metrics.completed===42?"首轮成功率 · 五类等权":"已完成样本成功率"]]:isTemporaryReview(g)||batchStatistics(g)?[[pct(value.score),"已上传平均 Score"],[pct(value.sr),"已上传成功率"]]:[[pct(value.score),"已发布轮次汇总 Score"],[points(value.stddev),"Score 标准差"]])){
     const item=make("span",undefined,"card-stat");item.append(make("b",text),make("span",label));stats.append(item);
   }
   const c=costsFor(g),tokens=make("span",undefined,"card-tokens");
@@ -616,7 +631,8 @@ function renderExperimentSummary(button,g){
   button.append(tokens,make("span",costNote(c),"card-stat-note"));
   appendApiCosts(button,g,true);
   button.append(stats);
-  if(isTemporaryReview(g)||batchStatistics(g))button.append(make("span","样本 n="+value.n+" · 单例 Score 标准差 "+points(value.stddev),"card-stat-note"));
+  if(isNativeCodingFirst42(g))button.append(make("span","样本 n="+value.n+"/42 · "+(g.metrics.completed===42?"完整首轮 · 五类能力等权":"阶段统计 · 未完成样本不计零"),"card-stat-note"));
+  else if(isTemporaryReview(g)||batchStatistics(g))button.append(make("span","样本 n="+value.n+" · 单例 Score 标准差 "+points(value.stddev),"card-stat-note"));
   else button.append(make("span","SR "+pct(value.sr)+" · 完整轮 n="+value.n+" · 轮间波动","card-stat-note"));
   button.append(make("span",value.basis,"card-stat-note"));
   const divisions=make("span",undefined,"card-capabilities");
@@ -661,7 +677,7 @@ function renderExperiment(){
   const isComplete=round?round.status==="complete":g.aggregation_status==="complete";
   const metrics=byId("experiment-metrics");metrics.replaceChildren();
   const batch=batchStatistics(g);
-  const displayMetrics=isTemporaryReview(g)||batch?[[coverage(m),"当前范围已上传"],[pct(batch?.score_mean),"已上传平均 Score"],[pct(batch?.success_rate),"已上传成功率"]]:[[coverage(m),"当前范围已发布"],[pct(m.score),round?"本轮 Score":"所有轮次 Score"],[pct(m.success_rate),"当前范围 SR"]];
+  const displayMetrics=isNativeCodingFirst42(g)?[[coverage(g.metrics),"首轮已发布"],[pct(g.metrics.score),"首轮 Score · 五类等权"],[pct(g.native_coding_first42.view.partial.score),"已完成样本均分 · 阶段值"]]:isTemporaryReview(g)||batch?[[coverage(m),"当前范围已上传"],[pct(batch?.score_mean),"已上传平均 Score"],[pct(batch?.success_rate),"已上传成功率"]]:[[coverage(m),"当前范围已发布"],[pct(m.score),round?"本轮 Score":"所有轮次 Score"],[pct(m.success_rate),"当前范围 SR"]];
   for(const [value,label] of displayMetrics){
     const item=make("div",undefined,"metric");item.append(make("strong",value),make("span",label));metrics.append(item);
   }
@@ -671,6 +687,7 @@ function renderExperiment(){
   byId("coverage-note").textContent=m.expected==null?"总量未设定，按已上传样本展示；不声明完整轮或最终成绩。":isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
   if(!isComplete && typeof m.observed_score==="number")byId("coverage-note").textContent+=" 已发布部分 Score "+pct(m.observed_score)+" / SR "+pct(m.observed_success_rate)+"。";
   if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isNativeCoding(g)?" "+codingScopeBasis(g):isIndependentRerun(g)?" "+rerunScopeBasis(g):isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
+  if(isNativeCodingFirst42(g))byId("coverage-note").textContent=codingFirst42Basis(g)+" 当前 "+g.metrics.completed+" / 42 已发布；缺项 "+(42-g.metrics.completed)+"。";
   renderAudit(g);renderCapabilities();renderRuns();
 }
 function renderCapabilities(){
@@ -743,7 +760,7 @@ function renderVideo(host,r){
   section.append(tabs,stage,hint,original);host.append(section);if(videos.length)choose(videos[0],0);else{stage.hidden=true;hint.textContent="此记录没有可用的原始视频。";}
 }
 function renderCodingReview(host,r,generation){
-  if(r.selection?.id!=="o23-depthpro-coding-unlimited-eight-20261030"||r.protocol?.profile!=="o23-depthpro-coding-unlimited-v1")return;
+  if(!["o23-depthpro-coding-unlimited-eight-20261030","o23-depthpro-coding-unlimited-first42-add34-20261030"].includes(r.selection?.id)||r.protocol?.profile!=="o23-depthpro-coding-unlimited-v1"||r.protocol.max_decisions!==null||r.protocol.native_control_cap!==20)return;
   const artifact=r.artifacts.find(a=>a.kind==="coding_execution"),section=make("details",undefined,"evidence-section"),body=make("div","展开后读取实际执行代码…","small");
   section.append(make("summary","实际执行代码与结果"),body);host.append(section);let loaded=false;
   section.addEventListener("toggle",async()=>{
