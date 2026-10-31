@@ -82,7 +82,8 @@ def project(catalog, output, pipeline_config=None, artifact_roots=(), inventory_
             artifact['site_path'] = target
     summary = dict(records=len(index['runs']), native_records=native, supplementary_records=special,
                    source_catalog_sha256=digest(source_raw), missing=missing,
-                   mirrored_json_bytes=sum(size for _,_,_,size in work), video_downloads=0)
+                   mirrored_json_bytes=sum(size for target,_,_,size in work if target.endswith('.json')),
+                   mirrored_image_bytes=sum(size for target,_,_,size in work if target.endswith('.png')), video_downloads=0)
     if inventory_only: return summary
     require(not missing, 'Original static inputs missing: ' + json.dumps(missing))
     copied = reused = 0

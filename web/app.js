@@ -44,7 +44,7 @@ const isNativeCodingFirst42 = g => g?.selection_id==="o23-depthpro-coding-unlimi
   &&g.protocol?.profile==="o23-depthpro-coding-unlimited-v1"&&g.protocol.max_decisions===null&&g.protocol.native_control_cap===20
   &&g.native_coding_first42?.schema_version==="l3-native-coding-first42-v1"&&g.native_coding_first42.expected===42
   &&g.native_coding_first42.selection_id===g.selection_id&&g.metrics?.expected===42&&g.display_round_selection?.plan_id===g.selection_id;
-const codingFirst42Basis = g => "首轮42项由原8项与新增34项明确组成；保留各自原始结果、来源和仿真版本。完整 Score 先按任务、能力求均值，再对五类能力等权；阶段均分仅对已完成样本等权，缺项不计零。原8项独立页继续保留。";
+const codingFirst42Basis = g => "首轮42项由原8项与新增34项明确组成；保留各自原始结果、来源和仿真版本。完整 Score 先按任务、能力求均值，再对五类能力等权；阶段均分仅对已完成样本等权，缺项不计零。原8项与新增34项统一在本页查看，同一 case 只计一次。";
 function renderCodingFirst42Scores(host,g,compact=false){
   const v=g.native_coding_first42.view,grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
   for(const [label,value,status] of [["首轮 Score",pct(v.score),v.completed===42?"完整42项 · 五类等权":"待齐全 · 五类等权"],["已完成",v.completed+" / 42","原8项 + 新增34项"],["已完成样本均分",pct(v.partial.score),"n="+v.partial.denominator+" · 阶段值，非最终 Score"]]){
@@ -465,7 +465,19 @@ function orderedGroups(groups){
   return [...groups].sort((a,b)=>(experimentSort==="completed"?completed(b)-completed(a):0)||effortOrder(a)-effortOrder(b));
 }
 const preferenceFor = g => groupPreferences.get(g.group_id)||{hidden:false};
-const visibleGroups = () => ledger.groups.filter(g=>!preferenceFor(g).hidden);
+// One presentation of the explicit 8 + 34 batch; original records remain intact.
+function mergedCodingTarget(g){
+  if(g?.group_id!=="922e4222862aa627158a46d8089872a9aab832d78ffc645ebf53e6e4d61780bb"||g.selection_id!=="o23-depthpro-coding-unlimited-eight-20261030"||g.protocol?.profile!=="o23-depthpro-coding-unlimited-v1")return null;
+  const targets=ledger.groups.filter(x=>x.group_id==="f491af77916615632067bbb1fe5a44e934cdfdd043d434afffb1ac44be9aa0d8"&&isNativeCodingFirst42(x));
+  if(targets.length!==1||!Array.isArray(g.run_ids)||!g.run_ids.length)return null;
+  const target=targets[0],ids=new Set(target.run_ids||[]),old=new Set(g.run_ids);
+  if(ids.size!==(target.run_ids||[]).length||old.size!==g.run_ids.length||!g.run_ids.every(id=>ids.has(id)))return null;
+  const source=ledger.runs.filter(r=>ids.has(r.run_id)&&r.selection?.id===g.selection_id);
+  if(source.length!==old.size||!source.every(r=>old.has(r.run_id)))return null;
+  return target;
+}
+const displayGroups = () => ledger.groups.filter(g=>!mergedCodingTarget(g));
+const visibleGroups = () => displayGroups().filter(g=>!preferenceFor(g).hidden);
 const episodeKey = e => JSON.stringify([e.task,e.variant,e.seed,e.scene]);
 const rowKey = row => JSON.stringify([row.round,episodeKey(row.episode)]);
 const rowScopeLabel = row => row.temporary_review===true?"待核查批次":"R"+row.round;
@@ -492,6 +504,8 @@ function updateGroupPreference(g,change){
   ensureVisibleSelection();renderExperiments();renderExperiment();
 }
 function ensureVisibleSelection(){
+  const merged=mergedCodingTarget(selectedGroup());
+  if(merged){clearDetail();selectedGroupId=merged.group_id;}
   if(selectedGroup()&&!preferenceFor(selectedGroup()).hidden)return;
   const next=[...visibleGroups()].sort((a,b)=>b.metrics.completed-a.metrics.completed)[0];
   clearDetail();selectedGroupId=next?.group_id||null;
@@ -570,6 +584,7 @@ function roundDisplayLabel(g,r){
 function releaseVideo(){if(activeVideo){activeVideo.pause();activeVideo.removeAttribute("src");activeVideo.load();activeVideo=null;}}
 function clearDetail(){detailGeneration++;releaseVideo();selectedRowKey=null;selectedRowSignature=null;byId("detail-body").replaceChildren();byId("detail-title").textContent="选择一个任务";byId("detail-caption").textContent="查看原生结果、三路视频与动作反馈。";}
 function selectExperiment(g){
+  g=mergedCodingTarget(g)||g;
   if(selectedGroupId===g.group_id||preferenceFor(g).hidden)return;
   clearDetail();selectedGroupId=g.group_id;
   if(isTemporaryReview(g))selectedRound="all";
@@ -645,12 +660,12 @@ function renderExperimentSummary(button,g){
 }
 function renderExperiments(){
   const host=byId("experiments"),q=byId("experiment-search").value.trim().toLowerCase();host.replaceChildren();
-  const hidden=ledger.groups.filter(g=>preferenceFor(g).hidden).length,toggle=byId("show-hidden");
+  const hidden=displayGroups().filter(g=>preferenceFor(g).hidden).length,toggle=byId("show-hidden");
   toggle.textContent=(showHiddenGroups?"收起隐藏组":"显示隐藏组")+" ("+hidden+")";toggle.disabled=!hidden;toggle.setAttribute("aria-pressed",String(showHiddenGroups));
   byId("restore-hidden").hidden=!hidden;
   byId("preferences-status").textContent=preferencesPersistent&&sortPersistent?"实验名称由维护者统一设置；隐藏与排序设置仅在本浏览器保存。":"实验名称由维护者统一设置；部分偏好无法持久保存，本次页面内仍有效。";
   byId("experiment-sort").value=experimentSort;
-  const ordered=orderedGroups(ledger.groups);
+  const ordered=orderedGroups(displayGroups());
   for(const g of ordered.filter(g=>(showHiddenGroups||!preferenceFor(g).hidden)&&[experimentName(g),originalExperimentName(g),g.selection_id,g.protocol.id,g.selection_title].join(" ").toLowerCase().includes(q))){
     const hidden=preferenceFor(g).hidden,card=make("article",undefined,"experiment-card"+(g.group_id===selectedGroupId?" selected":"")+(hidden?" hidden-preview":""));
     const button=make("button",undefined,"experiment-select");button.type="button";
@@ -660,7 +675,7 @@ function renderExperiments(){
     renderExperimentSummary(button,g);button.append(make("span",groupLabel(g)+" · "+g.selection_id,"experiment-id"));
     button.addEventListener("click",()=>selectExperiment(g));card.append(button);renderGroupSettings(card,g);renderUploadFooter(card,g);host.append(card);
   }
-  if(!host.children.length)host.append(make("p",hidden===ledger.groups.length&&hidden?"所有实验已隐藏。可显示隐藏组，或恢复全部隐藏组。":"没有匹配的实验。试试名称、medium、cap20 或实验 ID。","small"));
+  if(!host.children.length)host.append(make("p",hidden===displayGroups().length&&hidden?"所有实验已隐藏。可显示隐藏组，或恢复全部隐藏组。":"没有匹配的实验。试试名称、medium、cap20 或实验 ID。","small"));
 }
 function renderExperiment(){
   const g=selectedGroup();byId("workspace").hidden=!g;if(!g)return;
@@ -771,15 +786,34 @@ function renderCodingReview(host,r,generation){
       const bytes=await response.arrayBuffer(),hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map(v=>v.toString(16).padStart(2,"0")).join("");
       if(hash!==artifact.sha256||bytes.byteLength!==artifact.bytes)throw new Error("Code SHA mismatch");
       const review=JSON.parse(new TextDecoder().decode(bytes));if(generation!==detailGeneration)return;
-      if(!["l3-native-coding-review-v1","l3-native-coding-review-v2","l3-native-coding-review-v3"].includes(review.schema_version)||review.run_id!==r.run_id||review.profile!==r.protocol.profile||review.tool_calls.length!==review.tool_call_count||review.files.length!==review.code_file_count)throw new Error("Code scope mismatch");
+      if(!["l3-native-coding-review-v1","l3-native-coding-review-v2","l3-native-coding-review-v3","l3-native-coding-review-v4"].includes(review.schema_version)||review.run_id!==r.run_id||review.profile!==r.protocol.profile||review.tool_calls.length!==review.tool_call_count||review.files.length!==review.code_file_count)throw new Error("Code scope mismatch");
       body.replaceChildren();const download=link("下载完整代码与执行记录 JSON",artifact.site_path,true);download.setAttribute("download","coding-review.json");body.append(download,make("p",review.tool_call_count+" 次实际工具调用 · "+review.code_file_count+" 个代码文件 · SHA 已核验","small"));
       for(const item of review.tool_calls){
-        const nativeJS=review.schema_version==="l3-native-coding-review-v3"&&item.execution_kind==="native_javascript"&&item.name==="javascript"&&item.execution_result.exit_code===null;
+        const nativeJS=["l3-native-coding-review-v3","l3-native-coding-review-v4"].includes(review.schema_version)&&item.execution_kind==="native_javascript"&&item.name==="javascript"&&item.execution_result.exit_code===null;
         const failedWait=item.tool==="wait"&&item.execution_result.stream==="tool-error";
         const block=make("details",undefined,"trace-event");block.append(make("summary","决策 "+item.decision_index+" · "+item.name+(failedWait?" · 工具错误":nativeJS?" · 原生 JavaScript · 已完成":" · exit "+item.execution_result.exit_code)),make("p","工具调用 "+item.call_id,"small"),make("h4",failedWait?"实际工具参数":"实际命令 / 代码"),make("pre",failedWait?item.arguments:item.command),make("h4",failedWait?"工具返回的错误":nativeJS?"原生工具完整输出（无进程退出码）":"执行结果（合并输出）"),make("pre",item.execution_result.output));
         const args=make("details");args.append(make("summary","原生工具参数与完整输出"),make("pre",item.arguments),make("pre",JSON.stringify(item.output,null,2)),make("p","原调用 SHA "+item.original_call_sha256+" · 原输出 SHA "+item.original_output_sha256,"small"));block.append(args);body.append(block);
       }
       for(const file of review.files){const block=make("details",undefined,"trace-event");block.append(make("summary",file.path+" · "+file.bytes+" bytes"),make("pre",file.content),make("p",file.snapshot_note,"small"),make("p","原件 SHA "+file.original_sha256+" · 公开 SHA "+file.public_sha256,"small"));body.append(block);}
+      if(review.schema_version==="l3-native-coding-review-v4"){
+        if(!Array.isArray(review.image_outputs)||!review.image_outputs.length)throw new Error("Missing original image output");
+        const seen=new Set();
+        for(const item of review.image_outputs){
+          if(seen.has(item.artifact_path)||item.media_type!=="image/png")throw new Error("Invalid image output");seen.add(item.artifact_path);
+          const source=r.artifacts.filter(a=>a.kind==="coding_output_image"&&a.path===item.artifact_path);
+          if(source.length!==1||source[0].sha256!==item.sha256||source[0].bytes!==item.bytes)throw new Error("Image provenance mismatch");
+          const imageUrl=safeLink(source[0].site_path,true);if(!imageUrl)throw new Error("Missing image artifact");
+          const imageResponse=await fetch(imageUrl,{credentials:"omit",redirect:"error"});if(!imageResponse.ok)throw new Error("Image read failed");
+          const imageBytes=await imageResponse.arrayBuffer(),imageHash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",imageBytes))).map(v=>v.toString(16).padStart(2,"0")).join("");
+          if(imageHash!==item.sha256||imageBytes.byteLength!==item.bytes)throw new Error("Image SHA mismatch");
+          if(generation!==detailGeneration)return;
+          const block=make("details",undefined,"trace-event");block.append(make("summary","决策 "+item.decision_index+" · 实际图像输出 · "+item.scratch_path),make("p","工具调用 "+item.call_id,"small"));
+          const preview=make("img");preview.alt="决策 "+item.decision_index+" 的原始工具图像输出";preview.style.maxWidth="100%";preview.style.height="auto";
+          const blobUrl=URL.createObjectURL(new Blob([imageBytes],{type:"image/png"}));preview.addEventListener("load",()=>URL.revokeObjectURL(blobUrl),{once:true});preview.addEventListener("error",()=>URL.revokeObjectURL(blobUrl),{once:true});preview.src=blobUrl;
+          const downloadImage=link("下载原始图像",source[0].site_path,true);downloadImage.setAttribute("download",item.scratch_path);
+          block.append(preview,downloadImage,make("p",item.width+" × "+item.height+" · "+item.bytes+" bytes · SHA 已核验","small"),make("p",item.snapshot_note,"small"));body.append(block);
+        }
+      }
       for(const note of review.limitations)body.append(make("p",note,"small"));
       for(const change of review.redactions)body.append(make("p","脱敏说明 · 决策 "+change.decision_index+" · "+change.reason+" · 占位符 "+change.replacement,"small"));
     }catch{if(generation===detailGeneration){body.textContent="代码记录暂不可读或未通过 SHA 核验，请稍后重试。";loaded=false;}}
@@ -826,7 +860,7 @@ async function load(){if(loading)return;loading=true;try{
     lastEtag=response.headers.get("ETag")||"";
   }else if(!lastPayload)throw new Error();
   const complete=ledger.runs.filter(r=>r.evidence_level==="native_terminal"&&r.outcome.status==="complete");
-  byId("run-count").textContent=complete.length;byId("group-count").textContent=ledger.groups.length;byId("control-count").textContent=complete.reduce((n,r)=>n+r.outcome.native_controls,0).toLocaleString();
+  byId("run-count").textContent=complete.length;byId("group-count").textContent=displayGroups().length;byId("control-count").textContent=complete.reduce((n,r)=>n+r.outcome.native_controls,0).toLocaleString();
   // This fetch deliberately occurs on unchanged payloads and HTTP 304 too.
   const scoresChanged=await refreshFixedEvaluations(lastSnapshotId);showLoadedStatus(ledger);
   if(indexChanged||scoresChanged){ensureVisibleSelection();renderExperiments();renderExperiment();}

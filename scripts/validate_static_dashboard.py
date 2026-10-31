@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
+import struct
+import zlib
 from urllib.parse import urlparse
 
 SPECIAL = {
@@ -55,6 +57,58 @@ def public_url(value):
     require(parsed.scheme == 'https' and parsed.netloc and not parsed.username and not parsed.password
             and not parsed.fragment and parsed.query in ('', 'dl=1', 'raw=1'), 'Unsafe public URL')
 
+CODING_IMAGE_RUN = 'o23-depthpro-coding-unlimited-first42-add34-20261030-store_tools_in_toolbox-standard-s0-scene0'
+CODING_IMAGE_SHA = '47e3f03752703dcf72b2e4d4fd9dd1edfd68eb432b9c757101ebe6305831016d'
+CODING_REVIEW_SHA = '07b22508821b5aa779cb9286b421e7c259bdd0f1ebb9ed5d384108115dd67e45'
+
+def validate_png_structure(raw):
+    """Decode the exact reviewed RGB PNG layout, with no ancillary metadata."""
+    require(raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Coding image is not PNG')
+    offset=8; kinds=[]; compressed=bytearray()
+    while offset<len(raw):
+        require(offset+12<=len(raw), 'Truncated PNG chunk')
+        size=struct.unpack('>I',raw[offset:offset+4])[0];kind=raw[offset+4:offset+8]
+        require(offset+12+size<=len(raw), 'Truncated PNG payload')
+        payload=raw[offset+8:offset+8+size];crc=struct.unpack('>I',raw[offset+8+size:offset+12+size])[0]
+        require(zlib.crc32(kind+payload)&0xffffffff==crc, 'PNG CRC mismatch')
+        require(kind in (b'IHDR',b'IDAT',b'IEND'), 'PNG metadata or unsupported chunk is not publishable')
+        kinds.append(kind)
+        if kind==b'IHDR':
+            require(len(kinds)==1 and size==13, 'PNG header order/size differs')
+            require(struct.unpack('>IIBBBBB',payload)==(695,550,8,2,0,0,0), 'PNG dimensions or pixel format differs')
+        elif kind==b'IDAT':
+            require(kinds[0]==b'IHDR' and b'IEND'not in kinds and size>0, 'PNG data order differs')
+            compressed.extend(payload)
+        else:require(size==0 and offset+12==len(raw), 'PNG end/trailing bytes differ')
+        offset+=size+12
+    require(kinds[:1]==[b'IHDR'] and kinds[-1:]==[b'IEND'] and b'IDAT'in kinds and kinds.count(b'IHDR')==kinds.count(b'IEND')==1, 'Incomplete PNG stream')
+    decoder=zlib.decompressobj();expected=550*(1+695*3)
+    try: pixels=decoder.decompress(bytes(compressed),expected+1)
+    except zlib.error as error:raise ValueError('Invalid PNG pixel compression')from error
+    require(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(pixels)==expected, 'PNG pixel stream size or end differs')
+    require(all(pixels[row*(1+695*3)]<=4 for row in range(550)), 'PNG row filter differs')
+
+def validate_coding_image(root,row,artifact,raw):
+    """Permit only the original reviewed x07 image and its exact code output."""
+    require(row['run_id']==CODING_IMAGE_RUN and row['evidence_level']=='native_terminal', 'Unreviewed coding image run')
+    protocol=row['protocol']
+    require(protocol['profile']=='o23-depthpro-coding-unlimited-v1' and protocol['max_decisions']is None and protocol['native_control_cap']==20, 'Coding image protocol differs')
+    require(artifact['kind']=='coding_output_image' and artifact['media_type']=='image/png' and artifact['path']=='coding-output-000.png', 'Coding image kind/type/path differs')
+    require(artifact['sha256']==CODING_IMAGE_SHA and artifact['bytes']==246801 and digest(raw)==CODING_IMAGE_SHA and len(raw)==246801, 'Coding image original bytes differ')
+    validate_png_structure(raw)
+    codes=[a for a in row['artifacts']if a['kind']=='coding_execution']
+    require(len(codes)==1 and codes[0]['path']=='coding-review.json' and codes[0]['media_type']=='application/json' and codes[0]['sha256']==CODING_REVIEW_SHA, 'Image code artifact binding differs')
+    codepath='data/runs/'+row['run_id']+'/coding-review.json';require(codes[0].get('site_path')==codepath, 'Image code mirror differs')
+    code_raw=safe_path(root,codepath).read_bytes();require(digest(code_raw)==CODING_REVIEW_SHA and len(code_raw)==codes[0]['bytes'], 'Original image code bytes differ')
+    code=json.loads(code_raw);require(code['schema_version']=='l3-native-coding-review-v4' and code['run_id']==row['run_id'], 'Image code version/identity differs')
+    images=code.get('image_outputs');require(isinstance(images,list)and len(images)==1, 'Image output declaration count differs')
+    image=images[0]
+    for key,value in dict(artifact_path='coding-output-000.png',media_type='image/png',sha256=CODING_IMAGE_SHA,bytes=246801,width=695,height=550,decision_index=21,call_id='call_9cd154c4ab5749fcad18dd5c0908d017',output_index=2,scratch_path='tray.png',scratch_sha256=CODING_IMAGE_SHA).items():
+        require(image.get(key)==value, 'Image declaration binding differs: '+key)
+    calls=[c for c in code['tool_calls']if c.get('call_id')==image['call_id']]
+    require(len(calls)==1 and calls[0]['decision_index']==21 and calls[0]['execution_kind']=='shell_then_view_image', 'Image original tool call differs')
+    require(calls[0]['output'][2]==dict(type='input_image',artifact_path=image['artifact_path'],sha256=CODING_IMAGE_SHA,bytes=246801,media_type='image/png',detail='high'), 'Image original output block differs')
+
 def validate(root):
     root = Path(root).resolve()
     index = read(root/'data/index.json')
@@ -64,7 +118,7 @@ def validate(root):
     require(semantic_digest(index) == receipt['source_semantic_sha256'], 'Catalog semantics changed in projection')
     require(digest((root/'data/index.json').read_bytes()) == receipt['static_index_sha256'], 'Static index changed')
     require(len(index['runs']) == receipt['records'], 'Record count changed')
-    seen = set(); mirrors = set(); native = 0; special = 0; mirror_bytes = 0
+    seen = set(); mirrors = set(); native = 0; special = 0; mirror_bytes = 0; image_mirrors=set(); image_bytes=0
     for row in index['runs']:
         rid = row['run_id']
         require(isinstance(rid, str) and re.fullmatch(r'[A-Za-z0-9._-]+', rid) and rid not in seen, 'Duplicate/unsafe run ID')
@@ -98,7 +152,13 @@ def validate(root):
             if path not in mirrors:
                 raw = file.read_bytes()
                 require(len(raw) == artifact['bytes'] and digest(raw) == artifact['sha256'], 'Evidence SHA/size mismatch: ' + path)
-                json.loads(raw); mirrors.add(path); mirror_bytes += len(raw)
+                if artifact['kind']=='coding_output_image':
+                    validate_coding_image(root,row,artifact,raw);image_mirrors.add(path);image_bytes+=len(raw)
+                else:
+                    # Legacy JSON records may omit the media declaration; the original JSON parse remains mandatory.
+                    require(artifact.get('media_type','application/json')=='application/json' and artifact['path'].endswith('.json'), 'Non-image evidence must be JSON')
+                    json.loads(raw);mirror_bytes+=len(raw)
+                mirrors.add(path)
     require(native == receipt['native_records'] and special == receipt['supplementary_records'], 'Evidence counts changed')
     for path in root.rglob('*'):
         require(not path.is_symlink(), 'Symlinks are not publishable')
@@ -110,7 +170,7 @@ def validate(root):
                 'Frontend still depends on abandoned site APIs')
     require('http-equiv="refresh"' not in (root/'index.html').read_text(), 'Entry still redirects')
     return dict(records=len(seen), native_records=native, supplementary_records=special,
-                mirrored_json_files=len(mirrors), mirrored_json_bytes=mirror_bytes, video_downloads=0,
+                mirrored_json_files=len(mirrors-image_mirrors), mirrored_json_bytes=mirror_bytes, mirrored_image_files=len(image_mirrors), mirrored_image_bytes=image_bytes, video_downloads=0,
                 source_catalog_sha256=receipt['source_catalog_sha256'], static_index_sha256=receipt['static_index_sha256'])
 
 if __name__ == '__main__':
