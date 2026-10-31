@@ -111,11 +111,11 @@ console.table(results.map(r => ({
 | --- | --- |
 | `result` | 完整公开记录：episode、model、protocol、outcome、configuration_parameters、costs、versions、limitations、artifacts 等 |
 | `memberships` | 实验组、入选状态与逻辑轮次 |
-| `evidence[]` | 每个非视频 JSON 证据的 `kind`、`path`、SHA256、字节数、站内 URL 和解析后的 `data` |
+| `evidence[]` | 每个非视频证据的 `kind`、`path`、SHA256、字节数和站内 URL；JSON 证据保留解析后的 `data`，原始代码图片保留二进制引用 |
 | `videos[]` | 原视频文件公开直链、文件名、字节数、SHA256；可能为空 |
 | `original_manifest_url` | 站内原始已接受 manifest；特殊补充/人工指定记录没有正式 manifest 时为 null |
 
-在 `result.artifacts` 中，非视频的 `url` 指向本站公开镜像，`source_url` 保留原发布地址；视频 `url` 保持原文件下载地址。SHA256 和 `bytes` 对应原文件字节；`evidence[].data` 是解析后的 JSON，验证文件 SHA 应下载其 `url` 的原始字节。
+在 `result.artifacts` 中，非视频的 `url` 指向本站公开镜像，`source_url` 保留原发布地址；视频 `url` 保持原文件下载地址。SHA256 和 `bytes` 对应原文件字节。JSON 证据的字段结构保持不变，`evidence[].data` 是解析后的 JSON；原始代码图片使用 `media_type: "image/png"`、`representation: "binary_reference"` 和 `data: null`，其 `url` 指向完整原图，不嵌入 Base64。验证文件 SHA 应下载其 `url` 的原始字节。图片仍计入证据覆盖校验，未省略；构建统计将 JSON 字节和二进制图片字节分别报告。
 
 ### 得分、证据与费用
 

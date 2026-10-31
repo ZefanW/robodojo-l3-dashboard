@@ -13,7 +13,7 @@ import re
 import shutil
 from urllib.parse import urlparse
 
-from validate_static_dashboard import canonical, digest, read, require, safe_path, validate
+from validate_static_dashboard import canonical, digest, read, require, safe_path, validate, validate_coding_image
 from evaluation_scores import evaluate_groups
 
 DEFAULT_SITE = 'https://zefanw.github.io/robodojo-l3-dashboard/'
@@ -136,6 +136,8 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
 
         tasks = collections.defaultdict(list)
         evidence_bytes = 0
+        binary_evidence_bytes = 0
+        binary_evidence_files = 0
         for rid, original in sorted(by_id.items()):
             row = copy.deepcopy(original)
             evidence = []
@@ -152,10 +154,19 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
                             'Published evidence changed during API build')
                     artifact['url'] = site_url + artifact['site_path']
                     artifact['storage'] = 'github_pages'
-                    evidence.append(dict(kind=artifact['kind'], path=artifact['path'],
-                        sha256=artifact['sha256'], bytes=artifact['bytes'],
-                        url=artifact['url'], data=json.loads(raw)))
-                    evidence_bytes += len(raw)
+                    item = dict(kind=artifact['kind'], path=artifact['path'],
+                        sha256=artifact['sha256'], bytes=artifact['bytes'], url=artifact['url'])
+                    if artifact['kind'] == 'coding_output_image':
+                        # Retain the exact original image as verified binary evidence.
+                        # This check also applies to isolated builds with verify=False.
+                        validate_coding_image(root, original, artifact, raw)
+                        item.update(media_type='image/png', representation='binary_reference', data=None)
+                        binary_evidence_bytes += len(raw)
+                        binary_evidence_files += 1
+                    else:
+                        item['data'] = json.loads(raw)
+                        evidence_bytes += len(raw)
+                    evidence.append(item)
             manifest_url = site_url + row['manifest_path'] if row.get('manifest_path') else None
             emit('results/'+rid+'.json', envelope(run_id=rid, memberships=memberships[rid],
                 result=row, evidence=evidence, videos=videos, original_manifest_url=manifest_url))
@@ -176,7 +187,8 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
             documentation_url=site_url+'api/',
             score_scale='0..1', methods=['GET','HEAD'],
             query_filtering=False, authentication='none',
-            structured_evidence='embedded in each result and mirrored on this site',
+            structured_evidence='JSON is embedded in each result and mirrored on this site',
+            binary_evidence='Validated coding images retain original URL, SHA256, bytes and media_type; data is null',
             videos='original public download URLs; video bytes are not hosted by this API'))
         emit('openapi.json', openapi(api_url))
         # Verify generated membership and full-evidence coverage, independently
@@ -199,6 +211,7 @@ def build(root, site_url=DEFAULT_SITE, *, verify=True):
         raise
     return dict(snapshot_id=snapshot, experiments=len(groups), results=len(rows), tasks=len(tasks),
                 generated_files=len(generated), structured_evidence_bytes=evidence_bytes,
+                binary_evidence_bytes=binary_evidence_bytes, binary_evidence_files=binary_evidence_files,
                 output_bytes=sum(p.stat().st_size for p in target.rglob('*') if p.is_file()),
                 video_downloads=0)
 
@@ -211,7 +224,7 @@ def openapi(api_url):
         ('/experiments/{experiment_id}.json','Get original experiment summary and rounds','experiment_id'),
         ('/experiments/{experiment_id}/results.json','List selected and preserved results in an experiment','experiment_id'),
         ('/results.json','List all published result summaries',None),
-        ('/results/{run_id}.json','Get complete result and embedded structured evidence','run_id'),
+        ('/results/{run_id}.json','Get complete result, embedded JSON evidence and original binary evidence links','run_id'),
         ('/tasks.json','List task families',None),
         ('/tasks/{task}.json','Compare a task across all experiments, seeds and scenes','task'),
         ('/round-selections.json','Get declared round membership plans',None),
@@ -227,7 +240,7 @@ def openapi(api_url):
                 schema={'type':'string','pattern':'^[A-Za-z0-9][A-Za-z0-9._-]*$'})]
         paths[path]={'get':operation}
     return dict(openapi='3.1.0', info=dict(title='RoboDojo L3 public data API',version='1.0.0',
-        description='Read-only static JSON API. No authentication or server-side query filtering. All published structured evidence is included in result detail. Video URLs point to the original public storage.'),
+        description='Read-only static JSON API. No authentication or server-side query filtering. All published JSON evidence is embedded in result detail. Validated coding images have media_type=image/png, representation=binary_reference, data=null and a SHA256-bound URL to original bytes. Video URLs point to the original public storage.'),
         servers=[{'url':api_url.rstrip('/')}], paths=paths,
         components={'schemas':{'Envelope':{'type':'object','required':['schema_version','snapshot_id'],
             'properties':{'schema_version':{'const':VERSION},'snapshot_id':{'type':'string','pattern':'^[0-9a-f]{64}$'}},

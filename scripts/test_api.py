@@ -57,6 +57,61 @@ class ApiTests(unittest.TestCase):
         self.assertEqual((self.root/'data/runs/selected/actions.json').read_bytes(), original)
         self.assertEqual(result['video_downloads'], 0)
 
+    def add_original_coding_image(self):
+        public = Path(__file__).resolve().parents[1]/'web'
+        rid = 'o23-depthpro-coding-unlimited-first42-add34-20261030-store_tools_in_toolbox-standard-s0-scene0'
+        row = copy.deepcopy(next(r for r in read(public/'data/index.json')['runs'] if r['run_id'] == rid))
+        for artifact in row['artifacts']:
+            if artifact['kind'] == 'raw_video': continue
+            target = self.root/artifact['site_path'];target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes((public/artifact['site_path']).read_bytes())
+        self.source['runs'].append(row)
+        self.source['groups'][0]['run_ids'].append(rid)
+        self.save()
+        return row
+
+    def test_original_coding_image_binary_reference_keeps_all_evidence(self):
+        row = self.add_original_coding_image(); result = self.generate()
+        detail = self.api('results/'+row['run_id']+'.json')
+        image = next(a for a in row['artifacts'] if a['kind'] == 'coding_output_image')
+        item = next(a for a in detail['evidence'] if a['kind'] == 'coding_output_image')
+        self.assertEqual(item, dict(kind=image['kind'], path=image['path'], sha256=image['sha256'],
+            bytes=image['bytes'], url='https://zefanw.github.io/robodojo-l3-dashboard/'+image['site_path'],
+            media_type='image/png', representation='binary_reference', data=None))
+        expected = {(a['kind'],a['path'],a['sha256']) for a in row['artifacts'] if a['kind'] != 'raw_video'}
+        self.assertEqual(expected,{(a['kind'],a['path'],a['sha256'])for a in detail['evidence']})
+        self.assertEqual(result['binary_evidence_files'],1)
+        self.assertEqual(result['binary_evidence_bytes'],246801)
+        self.assertEqual(result['structured_evidence_bytes'],sum(a['bytes']for r in self.source['runs'] for a in r['artifacts'] if a['kind'] not in ('raw_video','coding_output_image')))
+        self.assertEqual(detail['result']['costs'], row['costs'])
+        self.assertEqual(detail['result']['outcome'], row['outcome'])
+        # The old JSON object remains byte-for-byte equivalent canonically.
+        action = next(a for a in detail['evidence'] if a['kind'] == 'action_feedback')
+        original = next(a for a in row['artifacts'] if a['kind'] == 'action_feedback')
+        self.assertEqual(canonical(action),canonical(dict(kind=original['kind'],path=original['path'],
+            sha256=original['sha256'],bytes=original['bytes'],
+            url='https://zefanw.github.io/robodojo-l3-dashboard/'+original['site_path'],
+            data=read(self.root/original['site_path']))))
+
+    def test_original_coding_image_corruption_fails_without_replacing_api(self):
+        row=self.add_original_coding_image();self.generate()
+        before=(self.root/'api/v1/results'/ (row['run_id']+'.json')).read_bytes()
+        image=next(a for a in row['artifacts'] if a['kind']=='coding_output_image')
+        (self.root/image['site_path']).write_bytes(b'corrupt')
+        with self.assertRaisesRegex(ValueError,'evidence changed'): self.generate()
+        self.assertEqual(before,(self.root/'api/v1/results'/(row['run_id']+'.json')).read_bytes())
+
+    def test_original_coding_image_wrong_media_rejected_even_without_static_verify(self):
+        row=self.add_original_coding_image()
+        next(a for a in row['artifacts'] if a['kind']=='coding_output_image')['media_type']='application/json'
+        self.save()
+        with self.assertRaisesRegex(ValueError,'kind/type/path'): self.generate()
+
+    def test_original_coding_image_foreign_identity_rejected(self):
+        row=self.add_original_coding_image()
+        row['protocol']['profile']='persistent-cap20';self.save()
+        with self.assertRaisesRegex(ValueError,'protocol differs'): self.generate()
+
     def test_round_and_preserved_membership_do_not_promote_supplements(self):
         self.generate()
         records = {r['run_id']:r for r in self.api('experiments/group-1/results.json')['results']}
