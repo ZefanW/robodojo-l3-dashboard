@@ -61,7 +61,7 @@ CODING_IMAGE_RUN = 'o23-depthpro-coding-unlimited-first42-add34-20261030-store_t
 CODING_IMAGE_SHA = '47e3f03752703dcf72b2e4d4fd9dd1edfd68eb432b9c757101ebe6305831016d'
 CODING_REVIEW_SHA = '07b22508821b5aa779cb9286b421e7c259bdd0f1ebb9ed5d384108115dd67e45'
 
-def validate_png_structure(raw):
+def validate_png_structure(raw, *, width=695, height=550):
     """Decode the exact reviewed RGB PNG layout, with no ancillary metadata."""
     require(raw.startswith(b'\x89PNG\r\n\x1a\n'), 'Coding image is not PNG')
     offset=8; kinds=[]; compressed=bytearray()
@@ -75,21 +75,52 @@ def validate_png_structure(raw):
         kinds.append(kind)
         if kind==b'IHDR':
             require(len(kinds)==1 and size==13, 'PNG header order/size differs')
-            require(struct.unpack('>IIBBBBB',payload)==(695,550,8,2,0,0,0), 'PNG dimensions or pixel format differs')
+            require(struct.unpack('>IIBBBBB',payload)==(width,height,8,2,0,0,0), 'PNG dimensions or pixel format differs')
         elif kind==b'IDAT':
             require(kinds[0]==b'IHDR' and b'IEND'not in kinds and size>0, 'PNG data order differs')
             compressed.extend(payload)
         else:require(size==0 and offset+12==len(raw), 'PNG end/trailing bytes differ')
         offset+=size+12
     require(kinds[:1]==[b'IHDR'] and kinds[-1:]==[b'IEND'] and b'IDAT'in kinds and kinds.count(b'IHDR')==kinds.count(b'IEND')==1, 'Incomplete PNG stream')
-    decoder=zlib.decompressobj();expected=550*(1+695*3)
+    decoder=zlib.decompressobj();expected=height*(1+width*3)
     try: pixels=decoder.decompress(bytes(compressed),expected+1)
     except zlib.error as error:raise ValueError('Invalid PNG pixel compression')from error
     require(decoder.eof and not decoder.unused_data and not decoder.unconsumed_tail and len(pixels)==expected, 'PNG pixel stream size or end differs')
-    require(all(pixels[row*(1+695*3)]<=4 for row in range(550)), 'PNG row filter differs')
+    require(all(pixels[row*(1+width*3)]<=4 for row in range(height)), 'PNG row filter differs')
+
+X27_IMAGE_RUN = 'o23-depthpro-coding-unlimited-first42-add34-20261030-push_T-random-s0-scene0'
+X27_REVIEW_SHA = '17da59abc2b8a52a073c749eb90e59546e66e77d6aea9efb48dcf8972888fe47'
+X27_IMAGES = {'coding-output-000.png': {'artifact_path': 'coding-output-000.png', 'bytes': 295840, 'call_id': 'call_a5f1c9f468fc422ebfe8fbd6486f8e80', 'decision_index': 16, 'height': 550, 'media_type': 'image/png', 'output_index': 1, 'scratch_path': 'pad.png', 'scratch_sha256': '5f14b71d9fe81330bcf5d5fd96b939b904f746212bd1440f15c837861959b9bf', 'sha256': '5f14b71d9fe81330bcf5d5fd96b939b904f746212bd1440f15c837861959b9bf', 'width': 650}, 'coding-output-001.png': {'artifact_path': 'coding-output-001.png', 'bytes': 323605, 'call_id': 'call_043f13bb3d9d44ac9781199b8a9ac08a', 'decision_index': 39, 'height': 550, 'media_type': 'image/png', 'output_index': 2, 'scratch_path': 'now.png', 'scratch_sha256': '25f46b54f420065c178f76ec408ed80e60ce696dbc6679aa5116fc56f1b7402b', 'sha256': '25f46b54f420065c178f76ec408ed80e60ce696dbc6679aa5116fc56f1b7402b', 'width': 650}}
+
+def validate_x27_image(root,row,artifact,raw):
+    """Only two original x27 outputs; retain missing stdout and known native exit."""
+    require(row['run_id']==X27_IMAGE_RUN and row['evidence_level']=='native_terminal','Unreviewed x27 image run')
+    protocol=row['protocol']
+    require(protocol['profile']=='o23-depthpro-coding-unlimited-v1' and protocol['max_decisions']is None and protocol['native_control_cap']==20,'Coding image protocol differs')
+    expected=X27_IMAGES.get(artifact['path']);require(expected is not None,'Unreviewed x27 image path')
+    require(artifact['kind']=='coding_output_image' and artifact['media_type']=='image/png','Coding image kind/type/path differs')
+    require(artifact['sha256']==expected['sha256'] and artifact['bytes']==expected['bytes'] and digest(raw)==expected['sha256'] and len(raw)==expected['bytes'],'Coding image original bytes differ')
+    validate_png_structure(raw,width=expected['width'],height=expected['height'])
+    codes=[a for a in row['artifacts']if a['kind']=='coding_execution']
+    require(len(codes)==1 and codes[0]['path']=='coding-review.json' and codes[0]['media_type']=='application/json' and codes[0]['sha256']==X27_REVIEW_SHA,'Image code artifact binding differs')
+    codepath='data/runs/'+row['run_id']+'/coding-review.json';require(codes[0].get('site_path')==codepath,'Image code mirror differs')
+    code_raw=safe_path(root,codepath).read_bytes();require(digest(code_raw)==X27_REVIEW_SHA and len(code_raw)==codes[0]['bytes'],'Original image code bytes differ')
+    code=json.loads(code_raw);require(code['schema_version']=='l3-native-coding-review-v5' and code['run_id']==row['run_id'],'Image code version/identity differs')
+    images=code.get('image_outputs');require(isinstance(images,list)and len(images)==2 and {im['artifact_path']for im in images}==set(X27_IMAGES),'Image output declaration count differs')
+    require({a['path']for a in row['artifacts']if a['kind']=='coding_output_image'}==set(X27_IMAGES),'Image artifact set differs')
+    require(code['tool_call_count']==len(code['tool_calls'])==6 and code['code_file_count']==len(code['files'])==2,'Original x27 coding count differs')
+    for image in images:
+        for key,value in X27_IMAGES[image['artifact_path']].items():require(image.get(key)==value,'Image declaration binding differs: '+key)
+        calls=[c for c in code['tool_calls']if c.get('call_id')==image['call_id']]
+        require(len(calls)==1 and calls[0]['decision_index']==image['decision_index'] and calls[0]['execution_kind']=='shell_then_view_image','Image original tool call differs')
+        call=calls[0];require(call['output'][image['output_index']]==dict(type='input_image',artifact_path=image['artifact_path'],sha256=image['sha256'],bytes=image['bytes'],media_type='image/png',detail='high'),'Image original output block differs')
+        if image['decision_index']==16:
+            require(call['execution_result']==dict(stream='shell-output-not-recorded',exit_code=0,output=None) and call['inner_stdout_recorded']is False and call['inner_exit_code_recorded']is True and call['exit_code_source']=='native-command-completed-metadata','Original missing stdout/native exit boundary differs')
+        else:require(call['inner_stdout_recorded']is True and call['inner_exit_code_recorded']is True and call['exit_code_source']=='recorded-shell-return','Original recorded shell output differs')
 
 def validate_coding_image(root,row,artifact,raw):
-    """Permit only the original reviewed x07 image and its exact code output."""
+    """Permit only exact reviewed x07 and x27 images with their original code."""
+    if row['run_id']==X27_IMAGE_RUN:return validate_x27_image(root,row,artifact,raw)
     require(row['run_id']==CODING_IMAGE_RUN and row['evidence_level']=='native_terminal', 'Unreviewed coding image run')
     protocol=row['protocol']
     require(protocol['profile']=='o23-depthpro-coding-unlimited-v1' and protocol['max_decisions']is None and protocol['native_control_cap']==20, 'Coding image protocol differs')
