@@ -192,7 +192,7 @@ function renderFixedScores(host,g,compact=false){
 const fixedCaseLabel=c=>c.task+" · "+c.variant+" · seed "+c.seed+" / scene "+c.scene;
 function renderFixedEvaluationSummary(g){
   const host=byId("fixed-evaluation-summary");if(!host)return;host.replaceChildren();
-  if(isNativeCodingFirst42(g)){host.append(make("h3","原生编程 · 首轮42"),make("p",codingFirst42Basis(g),"small"));renderCodingFirst42Scores(host,g);for(const [cap,c] of Object.entries(g.native_coding_first42.view.capability_coverage))host.append(make("p",cap+" · "+c.completed+" / "+c.expected,"small"));return;}
+  if(isNativeCodingFirst42(g)){host.append(make("h3","原生编程 · 首轮42"),make("p",codingFirst42Basis(g),"small"));renderCodingFirst42Scores(host,g);for(const [cap,c] of ["Generalization","Precision","Long-Horizon","Memory","Open"].map(name=>[name,g.native_coding_first42.view.capability_coverage[name]]))host.append(make("p",cap+" · "+c.completed+" / "+c.expected,"small"));return;}
   if(isNativeCoding(g)){host.append(make("h3","原生编程 · 决策轮次不限"),make("p",codingScopeBasis(g),"small"));renderCodingScores(host,g);return;}
   if(isIndependentRerun(g)){host.append(make("h3","8项仿真复跑"),make("p",rerunScopeBasis(g),"small"));renderRerunScores(host,g);return;}
   if(isTemporaryReview(g)){host.append(make("h3","当前批次平均成绩"),make("p",batchBasis(g)+" 各方法仍独立展示，核查后再决定合并。","small"));return;}
@@ -613,7 +613,7 @@ function renderDetailNavigation(g){
   rounds.value=selectedRound;
 }
 function experimentSummary(g){
-  if(isNativeCodingFirst42(g)){const v=g.native_coding_first42.view,complete=v.completed===42;return {score:complete?v.score:v.partial.score,sr:complete?v.evaluation.success_rate:g.metrics.observed_success_rate,stddev:null,n:v.completed,capabilities:Object.entries(g.dimensions).map(([name,d])=>({name,score:d.observed_score,completed:d.completed,expected:d.expected})),basis:complete?"完整首轮42 · 五类能力等权":"已完成样本均分 · n="+v.completed+"/42 · 阶段值，非最终 Score"};}
+  if(isNativeCodingFirst42(g)){const v=g.native_coding_first42.view,complete=v.completed===42;return {score:complete?v.score:v.partial.score,sr:complete?v.evaluation.success_rate:g.metrics.observed_success_rate,stddev:null,n:v.completed,capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].map(name=>{const d=g.dimensions[name];return {name,score:d.observed_score,completed:d.completed,expected:d.expected};}),basis:complete?"完整首轮42 · 五类能力等权":"已完成样本均分 · n="+v.completed+"/42 · 阶段值，非最终 Score"};}
   if(isTemporaryReview(g)||batchStatistics(g)){
     const b=batchStatistics(g)||{};
     return {score:b.score_mean??null,sr:b.success_rate??null,stddev:typeof b.score_stddev==="number"?b.score_stddev*100:null,n:b.run_count??g.run_ids.length,
