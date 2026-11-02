@@ -15,11 +15,17 @@ function validateSnapshot(s){
   return s;
 }
 function node(tag,text){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);return n;}
-function renderSnapshot(s){
+function validateResults(r){
+  if(r.schema_version!=="fixprompt-published-results-v1"||r.selection_id!==FIXPROMPT_ID||r.expected!==5||!Number.isFinite(r.prepared_unix)||!Array.isArray(r.rows)||r.rows.length>5)throw Error("已发布结果身份不符");
+  const ids=new Set();for(const item of r.rows){const pair=FIXPROMPT_CASES.find(([task,variant])=>task===item.task&&variant===item.variant);if(!pair||item.run_id!==FIXPROMPT_ID+"-20261102-"+item.task+"-"+item.variant+"-s0-scene0"||ids.has(item.run_id)||typeof item.success!=="boolean"||!Number.isFinite(item.score)||item.score<0||item.score>1||!/^[a-f0-9]{64}$/.test(item.manifest_sha256))throw Error("已发布结果内容不符");ids.add(item.run_id);}return r;
+}
+function renderSnapshot(s,published=null){
+  const results=new Map((published?.rows||[]).map(r=>[r.run_id,r]));
   const summary=document.getElementById("run-summary");summary.replaceChildren();
-  for(const [v,label]of [[s.started+" / 5","已启动"],[s.native_completed+" / 5","原生终局"],[s.published+" / 5","已审计并发布"]]){const d=node("div");d.append(node("strong",v),node("span",label));summary.append(d);}
+  const completed=s.rows.filter(r=>r.native_terminal||results.has(r.run_id)).length;
+  for(const [v,label]of [[s.started+" / 5","已启动"],[completed+" / 5","原生终局"],[results.size+" / 5","已审计并发布"]]){const d=node("div");d.append(node("strong",v),node("span",label));summary.append(d);}
   const rows=document.getElementById("status-rows");rows.replaceChildren();
-  for(const r of s.rows){const tr=node("tr");for(const v of [r.task,r.variant+" · seed0 / scene0",PHASES[r.phase],r.delivered_decisions,"—"])tr.append(node("td",v));rows.append(tr);}
+  for(const r of s.rows){const result=results.get(r.run_id),tr=node("tr");for(const v of [r.task,r.variant+" · seed0 / scene0",result?"已审计并发布":PHASES[r.phase],r.delivered_decisions,result?(result.score*100).toFixed(1):"—"])tr.append(node("td",v));if(result){const link=node("a","查看视频与记录");link.href="index.html?experiment="+FIXPROMPT_ID;tr.children[2].append(document.createTextNode(" · "),link);}rows.append(tr);}
   const age=Date.now()/1000-s.snapshot_unix;
   document.getElementById("snapshot-status").textContent="公开快照："+new Date(s.snapshot_unix*1000).toLocaleString("zh-CN",{hour12:false})+" · 每60秒检查公开更新"+(age>600?" · 快照超过10分钟，当前运行状态可能已有变化":"");
   document.getElementById("provenance").textContent=JSON.stringify(s.provenance,null,2);
@@ -27,7 +33,7 @@ function renderSnapshot(s){
 let loadingSnapshot=false;
 async function refreshSnapshot(){
   if(loadingSnapshot)return;loadingSnapshot=true;
-  try{const response=await fetch("data/fixprompt-status.json",{cache:"no-store",credentials:"omit",redirect:"error"});if(!response.ok)throw Error("HTTP "+response.status);renderSnapshot(validateSnapshot(await response.json()));}
+  try{const response=await fetch("data/fixprompt-status.json",{cache:"no-store",credentials:"omit",redirect:"error"});if(!response.ok)throw Error("HTTP "+response.status);const snapshot=validateSnapshot(await response.json());let published=null;try{const result=await fetch("data/fixprompt-results.json",{cache:"no-store",credentials:"omit",redirect:"error"});if(result.ok)published=validateResults(await result.json());}catch{}renderSnapshot(snapshot,published);}
   catch(e){document.getElementById("snapshot-status").textContent="运行快照暂时不可用；不据此推断失败。";}
   finally{loadingSnapshot=false;}
 }

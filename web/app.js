@@ -27,6 +27,19 @@ function renderRerunScores(host,g,compact=false){
   }
   host.append(grid);
 }
+const isFixprompt = g => g?.selection_id==="o23-depthpro-coding-unlimited-fixprompt"
+  &&g.protocol?.profile==="o23-depthpro-coding-unlimited-fixprompt-v1"&&g.protocol.max_decisions===null&&g.protocol.native_control_cap===20
+  &&g.fixprompt_scope?.schema_version==="l3-fixprompt-five-v1"&&g.fixprompt_scope.expected===5
+  &&g.fixprompt_scope.registry_sha256==="0638325b2ea53e77a717f4cb262aeaafe10d69fb1f3cc5bf581ac29f9957cf4e"
+  &&g.metrics?.expected===5&&g.display_round_selection?.plan_id===g.selection_id;
+const fixpromptBasis = () => "指定5项，仅修改任务目标提示词；固定 Sim5.1、O23-DepthPro、原生编程、决策轮次不限、每次EEF最多20控制步、判分代码保持原实验设置。未发布不计零，不并入旧结果。提示词尚未与判分完全等价：倒液体的事件触发及换块的释放阈值问题保留；木琴命中窗口与纸箱朝向的可见映射仍需核查。";
+function renderFixpromptScores(host,g,compact=false){
+  const b=batchStatistics(g),grid=make(compact?"span":"div",undefined,"fixed-scores"+(compact?" compact":""));
+  for(const [label,value,status] of [["已发布",coverage(g.metrics),"指定5项 · 仅改提示词"],["已发布均分",pct(b?.score_mean),"n="+(b?.score_count??0)+" · 逐case等权"],["已发布成功率",pct(b?.success_rate),"n="+(b?.success_count??0)]]){
+    const cell=make(compact?"span":"section",undefined,"fixed-score");cell.append(make("span",label,"fixed-score-label"),make("b",value,"fixed-score-value"),make("span",status,"fixed-score-status"));grid.append(cell);
+  }
+  host.append(grid);
+}
 const isNativeCoding = g => g?.selection_id==="o23-depthpro-coding-unlimited-eight-20261030"
   &&g.protocol?.profile==="o23-depthpro-coding-unlimited-v1"&&g.protocol.max_decisions===null&&g.protocol.native_control_cap===20
   &&g.native_coding_scope?.schema_version==="l3-native-coding-eight-v1"&&g.native_coding_scope.expected===8
@@ -171,6 +184,7 @@ function fixedResultStatus(result,expected){
   return count+" / "+expected+" · "+(result.conflicts?.length?"结果待核对":"尚未齐全");
 }
 function renderFixedScores(host,g,compact=false){
+  if(isFixprompt(g)){renderFixpromptScores(host,g,compact);return;}
   if(isNativeCoding(g)){renderCodingScores(host,g,compact);return;}
   if(isIndependentRerun(g)){renderRerunScores(host,g,compact);return;}
   if(isTemporaryReview(g)){host.append(make(compact?"span":"p","待核查批次 · 已上传样本均值","small"));return;}
@@ -186,6 +200,7 @@ function renderFixedScores(host,g,compact=false){
 const fixedCaseLabel=c=>c.task+" · "+c.variant+" · seed "+c.seed+" / scene "+c.scene;
 function renderFixedEvaluationSummary(g){
   const host=byId("fixed-evaluation-summary");if(!host)return;host.replaceChildren();
+  if(isFixprompt(g)){host.append(make("h3","5项提示词修订 · 原生编程 / 决策轮次不限"),make("p",fixpromptBasis(),"small"));renderFixpromptScores(host,g);return;}
   if(isNativeCoding(g)){host.append(make("h3","原生编程 · 决策轮次不限"),make("p",codingScopeBasis(g),"small"));renderCodingScores(host,g);return;}
   if(isIndependentRerun(g)){host.append(make("h3","8项仿真复跑"),make("p",rerunScopeBasis(g),"small"));renderRerunScores(host,g);return;}
   if(isTemporaryReview(g)){host.append(make("h3","当前批次平均成绩"),make("p",batchBasis(g)+" 各方法仍独立展示，核查后再决定合并。","small"));return;}
@@ -356,7 +371,7 @@ function renderAudit(g){
   {
     const card=make("article",undefined,"group");
     card.append(make("h3",experimentName(g)),
-      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+((isNativeCoding(g)||isNativeCodingFirst42(g))?"决策轮次不限 · 原生编程 · 禁止联网":g.protocol.max_decisions+" decisions / episode"),"small"));
+      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+((isNativeCoding(g)||isNativeCodingFirst42(g)||isFixprompt(g))?"决策轮次不限 · 原生编程 · 禁止联网":g.protocol.max_decisions+" decisions / episode"),"small"));
     const multiRound=(g.rounds||[]).length>1&&g.metrics.expected!=null;
     const complete=g.aggregation_status==="complete",ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
     const metrics=make("div",undefined,"metrics");
@@ -488,7 +503,7 @@ function experimentOptionName(g,groups){
   const suffix=duplicates.filter(item=>item.selection_id===g.selection_id).length>1?g.selection_id+" · "+g.group_id:g.selection_id;
   return name+" · "+suffix;
 }
-const groupLabel = g => isNativeCodingFirst42(g)?"首轮42汇总":isNativeCoding(g)?"原生编程实验组":isIndependentRerun(g)?"独立复跑组":isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
+const groupLabel = g => isFixprompt(g)?"5项提示词修订组":isNativeCodingFirst42(g)?"首轮42汇总":isNativeCoding(g)?"原生编程实验组":isIndependentRerun(g)?"独立复跑组":isTemporaryReview(g)?"待核查批次":(ledger.round_selections||[]).some(s=>s.id===g.selection_id)?"汇总组":"实验组";
 function updateGroupPreference(g,change){
   const next={hidden:typeof change.hidden==="boolean"?change.hidden:preferenceFor(g).hidden};
   if(next.hidden)groupPreferences.set(g.group_id,next);else groupPreferences.delete(g.group_id);
@@ -609,8 +624,8 @@ function experimentSummary(g){
   if(isTemporaryReview(g)||batchStatistics(g)){
     const b=batchStatistics(g)||{};
     return {score:b.score_mean??null,sr:b.success_rate??null,stddev:typeof b.score_stddev==="number"?b.score_stddev*100:null,n:b.run_count??g.run_ids.length,
-      capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].filter(name=>!(isIndependentRerun(g)||isNativeCoding(g))||b.capabilities?.[name]).map(name=>{const c=b.capabilities?.[name]||{};return {name,score:c.score_mean??null,completed:c.run_count??0,expected:null};}),
-      basis:"当前已上传 case 等权平均"+(isNativeCoding(g)?" · 原生编程指定8项":isIndependentRerun(g)?" · 独立8项复跑":isTemporaryReview(g)?" · 批次尚未合并":" · 固定评测成绩见上方")+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
+      capabilities:["Generalization","Precision","Long-Horizon","Memory","Open"].filter(name=>!(isIndependentRerun(g)||isNativeCoding(g)||isFixprompt(g))||b.capabilities?.[name]).map(name=>{const c=b.capabilities?.[name]||{};return {name,score:c.score_mean??null,completed:c.run_count??0,expected:null};}),
+      basis:"当前已上传 case 等权平均"+(isFixprompt(g)?" · 提示词修订指定5项":isNativeCoding(g)?" · 原生编程指定8项":isIndependentRerun(g)?" · 独立8项复跑":isTemporaryReview(g)?" · 批次尚未合并":" · 固定评测成绩见上方")+(b.unknown_score_count||b.unknown_success_count?" · 仅统计已知成绩":"")};
   }
   const rounds=g.rounds||[], completeRounds=rounds.filter(r=>r.status==="complete"), multiple=rounds.length>1&&g.metrics.expected!=null;
   const ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
@@ -692,7 +707,7 @@ function renderExperiment(){
   byId("round-config").textContent=isTemporaryReview(g)?"按原始 task / variant / seed / scene 逐条核查，不声明实验轮次。":round?roundConfiguration(round):"各轮的 seed、scene 和 variant 按原始轮次定义分别列出。";
   byId("coverage-note").textContent=m.expected==null?"总量未设定，按已上传样本展示；不声明完整轮或最终成绩。":isComplete?"本范围已完整发布 · 五类能力等权。" : "本范围尚未完整发布；完整 Score / SR 暂不显示。未发布不代表未运行或失败。";
   if(!isComplete && typeof m.observed_score==="number")byId("coverage-note").textContent+=" 已发布部分 Score "+pct(m.observed_score)+" / SR "+pct(m.observed_success_rate)+"。";
-  if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isNativeCoding(g)?" "+codingScopeBasis(g):isIndependentRerun(g)?" "+rerunScopeBasis(g):isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
+  if(isTemporaryReview(g)||batch)byId("coverage-note").textContent=batchBasis(g)+(isFixprompt(g)?" "+fixpromptBasis():isNativeCoding(g)?" "+codingScopeBasis(g):isIndependentRerun(g)?" "+rerunScopeBasis(g):isTemporaryReview(g)?"":" 固定评测的完成度与成绩见上方。");
   renderAudit(g);renderCapabilities();renderRuns();
 }
 function renderCapabilities(){
@@ -765,7 +780,8 @@ function renderVideo(host,r){
   section.append(tabs,stage,hint,original);host.append(section);if(videos.length)choose(videos[0],0);else{stage.hidden=true;hint.textContent="此记录没有可用的原始视频。";}
 }
 function renderCodingReview(host,r,generation){
-  if(!["o23-depthpro-coding-unlimited-eight-20261030","o23-depthpro-coding-unlimited-first42-add34-20261030"].includes(r.selection?.id)||r.protocol?.profile!=="o23-depthpro-coding-unlimited-v1"||r.protocol.max_decisions!==null||r.protocol.native_control_cap!==20)return;
+  const codingScope=(["o23-depthpro-coding-unlimited-eight-20261030","o23-depthpro-coding-unlimited-first42-add34-20261030"].includes(r.selection?.id)&&r.protocol?.profile==="o23-depthpro-coding-unlimited-v1")||(r.selection?.id==="o23-depthpro-coding-unlimited-fixprompt"&&r.protocol?.profile==="o23-depthpro-coding-unlimited-fixprompt-v1");
+  if(!codingScope||r.protocol.max_decisions!==null||r.protocol.native_control_cap!==20)return;
   const artifact=r.artifacts.find(a=>a.kind==="coding_execution"),section=make("details",undefined,"evidence-section"),body=make("div","展开后读取实际执行代码…","small");
   section.append(make("summary","实际执行代码与结果"),body);host.append(section);let loaded=false;
   section.addEventListener("toggle",async()=>{
@@ -833,6 +849,7 @@ function showRun(r){
   if(r.limitations?.length){evidence.append(make("h3","Limitations"));for(const item of r.limitations)evidence.append(make("p",item,"small"));}host.append(evidence);
 }
 function showLoadedStatus(data){byId("status").textContent="结果目录 · 每 60 秒检查更新 · 刚刚检查";const pending=data.pending_review||[],queue=data.upload_queue||[];byId("upload-status").hidden=!pending.length&&!queue.length;byId("upload-summary").textContent="上传状态 · "+queue.length+" 条处理中 · "+pending.length+" 条需补充材料";const items=byId("upload-items");items.replaceChildren();for(const row of pending){const reason=row.reason.includes("journal recovery")?"恢复请求的回执尚未被导出器完整收录，请补充正式证据包。":row.reason.includes("Builtin demo")?"含 600 步内置演示，缺少模型归属和原视频完成凭据。":row.reason;items.append(make("p",row.task+"："+reason,"small"));}for(const row of queue)items.append(make("p",row.id.slice(0,12)+" · "+({queued:"已收到，等待校验",receiving:"正在接收",validating:"正在校验",needs_check:"需要核对"}[row.status]||row.status)+(row.reason?" · "+row.reason:""),"small"));}
+let fixpromptDeepLinkApplied=false;
 async function load(){if(loading)return;loading=true;try{
   let indexChanged=false;
   const response=await fetch("data/index.json",{cache:"no-cache",credentials:"omit",redirect:"error",headers:lastEtag?{"If-None-Match":lastEtag}:{}});
@@ -857,6 +874,7 @@ async function load(){if(loading)return;loading=true;try{
   // This fetch deliberately occurs on unchanged payloads and HTTP 304 too.
   const scoresChanged=await refreshFixedEvaluations(lastSnapshotId);showLoadedStatus(ledger);
   if(indexChanged||scoresChanged){ensureVisibleSelection();renderExperiments();renderExperiment();}
+  if(!fixpromptDeepLinkApplied&&typeof location!=="undefined"&&new URL(location.href).searchParams.get("experiment")==="o23-depthpro-coding-unlimited-fixprompt"){const target=ledger.groups.find(isFixprompt);if(target){selectExperiment(target);fixpromptDeepLinkApplied=true;}}
 }catch{
   fixedEvaluationState="pending";fixedEvaluations=new Map();
   renderExperiments();renderExperiment();
