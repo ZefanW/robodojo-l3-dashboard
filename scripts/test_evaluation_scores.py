@@ -32,6 +32,26 @@ class EvaluationScoresTests(unittest.TestCase):
     def score(self, plan='P50_111'):
         return score_plan(self.group, self.by_id, self.plans[plan])
 
+    def test_only_declared_nocap_devset_members_with_matching_settings_score(self):
+        self.group['group_id'] = 'b38355a9f7dfb9ca45d6592cbc796b413274de34c79b67f99365fa14e447aa42'
+        self.group['selection_id'] = 'persistent-nocap-medium-mixed42-v1'
+        self.group['protocol'].update(id='persistent-nocap-medium-historical-v1',
+                                      profile='persistent-nocap', native_control_cap=None)
+        row = self.rows[0]
+        row.update(selection={'id':'persistent-nocap-medium-full54-v1'},
+                   versions={'behavior_sha256':'10dfad791bb3000c97a33f3ba96ba0f2e97f39109635fba09998075f58ff9e8c'})
+        row['protocol'] = dict(self.group['protocol'], profile='persistent')
+        self.group['devset_supplement'] = {'profile_alias_run_ids': [row['run_id']]}
+        self.assertEqual(self.score()['selected_run_ids'], [row['run_id']])
+        row['protocol']['native_control_cap'] = 20
+        self.assertEqual(self.score()['completed'], 0)
+        row['protocol']['native_control_cap'] = None
+        self.group['devset_supplement']['profile_alias_run_ids'] = []
+        self.assertEqual(self.score()['completed'], 0)
+        self.group['devset_supplement']['profile_alias_run_ids'] = [row['run_id']]
+        row['versions']['behavior_sha256'] = 'other'
+        self.assertEqual(self.score()['completed'], 0)
+
     def test_manifest_has_exact_first_scenes_and_first_round_subset(self):
         first = self.plans['first_round']['cases']
         self.assertEqual(len(first), 42)

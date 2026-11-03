@@ -66,6 +66,22 @@ def validate_plans(document):
     return plans
 
 
+def scoring_profile(row, group):
+    """Resolve the declared NoCap historical label for the verified devset members."""
+    profile = row.get('protocol', {}).get('profile')
+    if (group.get('group_id') == 'b38355a9f7dfb9ca45d6592cbc796b413274de34c79b67f99365fa14e447aa42'
+            and group.get('selection_id') == 'persistent-nocap-medium-mixed42-v1'
+            and group['protocol'].get('profile') == 'persistent-nocap'
+            and profile == 'persistent'
+            and row['protocol'].get('id') == 'persistent-nocap-medium-historical-v1'
+            and row.get('selection', {}).get('id') == 'persistent-nocap-medium-full54-v1'
+            and row['run_id'] in group.get('devset_supplement', {}).get('profile_alias_run_ids', [])
+            and row.get('versions', {}).get('behavior_sha256') ==
+            '10dfad791bb3000c97a33f3ba96ba0f2e97f39109635fba09998075f58ff9e8c'):
+        return 'persistent-nocap'
+    return profile
+
+
 def accepted_kind(row, group, approved_supplements):
     """Keep exact pre-existing user exceptions separate from native evidence."""
     outcome = row.get('outcome', {})
@@ -75,9 +91,11 @@ def accepted_kind(row, group, approved_supplements):
     if type(outcome.get('success')) is not bool:
         return None, 'missing_success'
     for category, keys in (('model', ('name', 'thinking_effort')),
-                           ('protocol', ('profile', 'native_control_cap', 'max_decisions'))):
+                           ('protocol', ('native_control_cap', 'max_decisions'))):
         if any(row.get(category, {}).get(k) != group.get(category, {}).get(k) for k in keys):
             return None, 'different_experiment_settings'
+    if scoring_profile(row, group) != group.get('protocol', {}).get('profile'):
+        return None, 'different_experiment_settings'
     if (row.get('evidence_level') == 'native_terminal'
             and outcome.get('native_terminal') is True
             and outcome.get('status') == 'complete'
