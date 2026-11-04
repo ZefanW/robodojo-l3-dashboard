@@ -13,6 +13,20 @@ CAPABILITY_COUNTS = {'Generalization': 12, 'Long-Horizon': 8, 'Memory': 6,
 PLAN_ALLOCATIONS = {'first_round': (42, {1: 42}),
                     'spiky2_65': (65, {1: 19, 2: 23}),
                     'P50_111': (111, {1: 19, 4: 23})}
+NOCAP_RERUN_REUSED_BEHAVIORS = {
+    'nocap-import-l3_persistent_v1_arrange_largest_number_s0_layout0_20261002_v1':
+        'c181e609f88ca46a0bdb04b7dc77bbe2631455f2c50902a2e5785488da6f97af',
+    'nocap-import-l3_persistent_v1_fold_clothes_s0_layout0_20261002_v1':
+        '0d182fd39111e8f55d379c61837689b48cf05d0b05531bd9674afad44a43ed9e',
+    'nocap-import-l3_persistent_v1_pack_objects_into_box_s0_layout0_20261002_v1':
+        '02da934259165ecba44d38957201d2804e2003e1d2c9655fe12181c4eee96bbc',
+    'nocap-import-l3_persistent_v1_push_T_s0_layout0_20261002_v1':
+        'faf27fc6019cbbb867a7fca7cfd7db4699d63d49984dbe48e6aacd414f8cdf46',
+    'nocap-import-l3_persistent_v1_sort_nesting_dolls_by_size_s0_layout0_20261002_v1':
+        'e33a8b9f6819b1f79b530b92f580f4e183bb565c31e743eae34c2ca77c32a0b9',
+    'nocap-import-l3_persistent_v1_stack_bowls_s0_layout0_20261002_v1':
+        '73aa404a3ffdb62ac43142a894fe80a401e4cbfbbbd3f21de3becc679a092b75',
+}
 
 
 def case_key(episode):
@@ -79,6 +93,17 @@ def scoring_profile(row, group):
             and row.get('versions', {}).get('behavior_sha256') ==
             '10dfad791bb3000c97a33f3ba96ba0f2e97f39109635fba09998075f58ff9e8c'):
         return 'persistent-nocap'
+    if (group.get('group_id') == 'f0ba6a3b6e7c6553d771e41507561cd747d408d7d62bc933b6f8eff3ed5b9040'
+            and group.get('selection_id') == 'persistent-nocap-rerun'
+            and group.get('protocol', {}).get('profile') == 'persistent'
+            and profile == 'persistent-nocap'
+            and row['protocol'].get('id') == 'persistent-nocap-medium-historical-v1'
+            and row.get('selection', {}).get('id') == 'persistent-nocap-medium-full54-v1'
+            and row['run_id'] in NOCAP_RERUN_REUSED_BEHAVIORS
+            and row['run_id'] in group.get('devset_supplement', {}).get('reused_original_run_ids', [])
+            and row.get('versions', {}).get('behavior_sha256') ==
+            NOCAP_RERUN_REUSED_BEHAVIORS[row['run_id']]):
+        return 'persistent'
     return profile
 
 

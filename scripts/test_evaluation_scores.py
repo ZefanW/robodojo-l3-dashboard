@@ -52,6 +52,55 @@ class EvaluationScoresTests(unittest.TestCase):
         row['versions']['behavior_sha256'] = 'other'
         self.assertEqual(self.score()['completed'], 0)
 
+    def test_nocap_rerun_historical_alias_keeps_identity_settings_and_evidence_gates(self):
+        row = copy.deepcopy(next(r for r in self.rows
+            if r['episode']['task'] == 'arrange_largest_number'
+            and r['episode']['variant'] == 'standard' and r['episode']['scene'] == 0))
+        row.update(run_id='nocap-import-l3_persistent_v1_arrange_largest_number_s0_layout0_20261002_v1',
+                   selection={'id': 'persistent-nocap-medium-full54-v1'},
+                   versions={'behavior_sha256':
+                       'c181e609f88ca46a0bdb04b7dc77bbe2631455f2c50902a2e5785488da6f97af'})
+        row['protocol'].update(id='persistent-nocap-medium-historical-v1',
+                               profile='persistent-nocap', native_control_cap=None)
+        group = copy.deepcopy(self.group)
+        group.update(group_id='f0ba6a3b6e7c6553d771e41507561cd747d408d7d62bc933b6f8eff3ed5b9040',
+                     selection_id='persistent-nocap-rerun', run_ids=[row['run_id']],
+                     devset_supplement={'reused_original_run_ids': [row['run_id']]})
+        group['protocol'].update(profile='persistent', native_control_cap=None)
+
+        def score(candidate, experiment):
+            return score_plan(experiment, {candidate['run_id']: candidate}, self.plans['P50_111'])
+
+        before = copy.deepcopy((row, group))
+        self.assertEqual(score(row, group)['selected_run_ids'], [row['run_id']])
+        self.assertEqual((row, group), before)
+        changes = [
+            ('undeclared', 'group', ('devset_supplement', 'reused_original_run_ids'), []),
+            ('wrong_behavior', 'row', ('versions', 'behavior_sha256'), 'other'),
+            ('wrong_group', 'group', ('group_id',), 'other'),
+            ('wrong_group_selection', 'group', ('selection_id',), 'other'),
+            ('wrong_origin_protocol', 'row', ('protocol', 'id'), 'other'),
+            ('wrong_origin_selection', 'row', ('selection', 'id'), 'other'),
+            ('control_cap_changed', 'row', ('protocol', 'native_control_cap'), 20),
+            ('decision_limit_changed', 'row', ('protocol', 'max_decisions'), 101),
+            ('model_changed', 'row', ('model', 'thinking_effort'), 'high'),
+            ('not_native_terminal', 'row', ('outcome', 'native_terminal'), False),
+        ]
+        for label, owner, path, value in changes:
+            with self.subTest(label=label):
+                candidate, experiment = copy.deepcopy((row, group))
+                target = candidate if owner == 'row' else experiment
+                for part in path[:-1]:
+                    target = target[part]
+                target[path[-1]] = value
+                self.assertEqual(score(candidate, experiment)['completed'], 0)
+        # A matching source hash cannot admit any run outside the six exact IDs.
+        candidate, experiment = copy.deepcopy((row, group))
+        candidate['run_id'] += '-unreviewed'
+        experiment['run_ids'] = [candidate['run_id']]
+        experiment['devset_supplement']['reused_original_run_ids'] = [candidate['run_id']]
+        self.assertEqual(score(candidate, experiment)['completed'], 0)
+
     def test_manifest_has_exact_first_scenes_and_first_round_subset(self):
         first = self.plans['first_round']['cases']
         self.assertEqual(len(first), 42)
