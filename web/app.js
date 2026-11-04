@@ -371,7 +371,7 @@ function renderAudit(g){
   {
     const card=make("article",undefined,"group");
     card.append(make("h3",experimentName(g)),
-      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+((isNativeCoding(g)||isNativeCodingFirst42(g)||isFixprompt(g))?"决策轮次不限 · 原生编程 · 禁止联网":g.protocol.max_decisions+" decisions / episode"),"small"));
+      make("div",g.model.thinking_effort+" effort · Codex "+g.model.client_version+" · "+g.protocol.native_control_cap+" controls / EEF · "+((isNativeCoding(g)||isNativeCodingFirst42(g)||isFixprompt(g)||(g.protocol.profile==="o23-depthpro-coding-unlimited-v1"&&g.protocol.max_decisions===null&&g.protocol.native_control_cap===20))?"决策轮次不限 · 原生编程 · 禁止联网":g.protocol.max_decisions+" decisions / episode"),"small"));
     const multiRound=(g.rounds||[]).length>1&&g.metrics.expected!=null;
     const complete=g.aggregation_status==="complete",ambiguous=g.aggregation_status==="ambiguous_multiple_attempts";
     const metrics=make("div",undefined,"metrics");
